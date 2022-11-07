@@ -1,9 +1,9 @@
 package main
 
 import (
-  "betterdiscord/cli/cmd"
+	"betterdiscord/cli/cmd"
 )
 
 func main() {
-  cmd.Execute()
+	cmd.Execute()
 }

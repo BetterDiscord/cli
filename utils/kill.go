@@ -1,39 +1,39 @@
 package utils
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/shirou/gopsutil/v3/process"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
-func KillProcess(name string) (error) {
-    processes, err := process.Processes()
+func KillProcess(name string) error {
+	processes, err := process.Processes()
 
-    // If we can't even list processes, bail out
-    if err != nil {
-        return fmt.Errorf("Could not list processes")
-    }
+	// If we can't even list processes, bail out
+	if err != nil {
+		return fmt.Errorf("Could not list processes")
+	}
 
-    // Search for desired processe(s)
-    for _, p := range processes {
-        n, err := p.Name()
+	// Search for desired processe(s)
+	for _, p := range processes {
+		n, err := p.Name()
 
-        // Ignore processes requiring Admin/Sudo
-        if err != nil {
-            continue 
-        }
+		// Ignore processes requiring Admin/Sudo
+		if err != nil {
+			continue
+		}
 
-        // We found our target, kill it
-        if n == name {
-            var killErr = p.Kill()
+		// We found our target, kill it
+		if n == name {
+			var killErr = p.Kill()
 
-            // We found it but can't kill it, bail out
-            if killErr != nil {
-                return killErr
-            }
-        }
-    }
+			// We found it but can't kill it, bail out
+			if killErr != nil {
+				return killErr
+			}
+		}
+	}
 
-    // If we got here, everything was killed without error
-    return nil
+	// If we got here, everything was killed without error
+	return nil
 }

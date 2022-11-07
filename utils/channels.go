@@ -5,12 +5,12 @@ import "strings"
 func GetChannelName(channel string) string {
 	switch strings.ToLower(channel) {
 	case "stable":
-		return "Discord";
+		return "Discord"
 	case "canary":
-		return "DiscordCanary";
+		return "DiscordCanary"
 	case "ptb":
-		return "DiscordPTB";
+		return "DiscordPTB"
 	default:
-        return ""
+		return ""
 	}
 }
