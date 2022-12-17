@@ -18,15 +18,32 @@ func init() {
 }
 
 var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "Installs BetterDiscord to your Discord",
-	Long:  "This can install BetterDiscord to multiple versions and paths of Discord at once.",
+	Use:       "install <channel>",
+	Short:     "Installs BetterDiscord to your Discord",
+	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
+	ValidArgs: []string{"canary", "stable", "ptb"},
+	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
+		var releaseChannel = args[0]
+		var targetExe = "s"
+		switch releaseChannel {
+		case "stable":
+			targetExe = "Discord.exe"
+			break
+		case "canary":
+			targetExe = "DiscordCanary.exe"
+			break
+		case "ptb":
+			targetExe = "DiscordPTB.exe"
+			break
+		default:
+			targetExe = ""
+		}
 
 		// Kill Discord if it's running
-		var exe = utils.GetProcessExe("DiscordCanary.exe")
+		var exe = utils.GetProcessExe(targetExe)
 		if len(exe) > 0 {
-			if err := utils.KillProcess("DiscordCanary.exe"); err != nil {
+			if err := utils.KillProcess(targetExe); err != nil {
 				fmt.Println("Could not kill Discord")
 				return
 			}
@@ -75,7 +92,7 @@ var installCmd = &cobra.Command{
 		}
 
 		// Inject shim loader
-		var discordPath = utils.DiscordPath("canary")
+		var discordPath = utils.DiscordPath(releaseChannel)
 		var appPath = path.Join(discordPath, "app")
 		if err := os.MkdirAll(appPath, 0755); err != nil {
 			fmt.Println("Could not create app folder")
