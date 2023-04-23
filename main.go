@@ -1,7 +1,7 @@
 package main
 
 import (
-	"betterdiscord/cli/cmd"
+	"github.com/betterdiscord/cli/cmd"
 )
 
 func main() {

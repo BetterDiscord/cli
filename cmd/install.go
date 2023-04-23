@@ -5,12 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	utils "betterdiscord/cli/utils"
+	utils "github.com/betterdiscord/cli/utils"
 )
 
 func init() {
@@ -25,7 +24,7 @@ var installCmd = &cobra.Command{
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 		var releaseChannel = args[0]
-		var targetExe = "s"
+		var targetExe = ""
 		switch releaseChannel {
 		case "stable":
 			targetExe = "Discord.exe"
@@ -92,65 +91,15 @@ var installCmd = &cobra.Command{
 		}
 
 		// Inject shim loader
-		var discordPath = utils.DiscordPath(releaseChannel)
-		var appPath = path.Join(discordPath, "app")
-		if err := os.MkdirAll(appPath, 0755); err != nil {
-			fmt.Println("Could not create app folder")
-			return
-		}
+		var corePath = utils.DiscordPath(releaseChannel)
 
-		var pkgPath = path.Join(appPath, "package.json")
-		var indPath = path.Join(appPath, "index.js")
-		const adpString = `{"name":"betterdiscord","main":"index.js"}`
-		const ddcString = `{"name":"discord_desktop_core","version":"0.0.0","private":"true","main":"index.js"}`
-		var pkgString = adpString
 		var indString = `require("` + asarPath + `");`
 		indString = strings.ReplaceAll(indString, `\`, "/")
+		indString = indString + "\nmodule.exports = require(\"./core.asar\");"
 
-		if runtime.GOOS == "linux" {
-			pkgString = ddcString
-			indString = indString + `\nmodule.exports = require("./core.asar")`
-		}
-
-		if err := os.WriteFile(pkgPath, []byte(pkgString), 0755); err != nil {
-			fmt.Println("Could not write package.json")
+		if err := os.WriteFile(path.Join(corePath, "index.js"), []byte(indString), 0755); err != nil {
+			fmt.Println("Could not write index.js in discord_desktop_core!")
 			return
-		}
-
-		if err := os.WriteFile(indPath, []byte(indString), 0755); err != nil {
-			fmt.Println("Could not write index.js")
-			return
-		}
-
-		// Rename Asar
-		if runtime.GOOS != "linux" {
-			var appAsarPath = path.Join(discordPath, "app.asar")
-			var disAsarPath = path.Join(discordPath, "discord.asar")
-			var appAsarExists = utils.Exists(appAsarPath)
-			var disAsarExists = utils.Exists(disAsarPath)
-
-			// If neither exists, something is really wrong
-			if !appAsarExists && !disAsarExists {
-				fmt.Println("Discord installation corrupt")
-				return
-			}
-
-			// If both exist, get rid of previously renamed asar as outdated
-			if appAsarExists && disAsarExists {
-				if err := os.Remove(disAsarPath); err != nil {
-					fmt.Println("Could not delete discord.asar, is Discord running?")
-					return
-				}
-			}
-
-			// If the app asar exists, rename it. This will also handle cases from
-			// above where both existed so do not make this an else or !disAsarExists
-			if appAsarExists {
-				if err := os.Rename(appAsarPath, disAsarPath); err != nil {
-					fmt.Println("Could not rename app.asar, is Discord running?")
-					return
-				}
-			}
 		}
 
 		// Launch Discord if we killed it

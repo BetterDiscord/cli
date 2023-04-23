@@ -1,4 +1,4 @@
-module betterdiscord/cli
+module github.com/betterdiscord/cli
 
 go 1.19
 

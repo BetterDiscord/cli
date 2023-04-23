@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"io/fs"
 	"os"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -49,74 +51,76 @@ func ValidatePath(proposed string) string {
 	switch op := runtime.GOOS; op {
 	case "windows":
 		return validateWindows(proposed)
-	case "darwin":
-		return validateMac(proposed)
-	case "linux":
-		return validateLinux(proposed)
+	case "darwin","linux":
+		return validateMacLinux(proposed)
 	default:
 		return ""
 	}
 }
 
+
+func Filter[T any](source []T, filterFunc func(T) bool) (ret []T) {
+	var returnArray = []T{}
+	for _, s := range source {
+		if filterFunc(s) {
+			returnArray = append(ret, s)
+		}
+	}
+	return returnArray
+}
+
+
 func validateWindows(proposed string) string {
 	var finalPath = ""
 	var selected = path.Base(proposed)
 	if strings.HasPrefix(selected, "Discord") {
+
+		// Get version dir like 1.0.9002
 		var dFiles, err = os.ReadDir(proposed)
 		if err != nil {
 			return ""
 		}
-		var appDir = ""
-		for _, file := range dFiles {
-			if !file.IsDir() || !strings.HasPrefix(file.Name(), "app-") {
-				continue
-			}
-			if file.Name() > appDir {
-				appDir = file.Name()
-			}
+		
+		var candidates = Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && len(strings.Split(file.Name(), ".")) == 3 })
+		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
+		var versionDir = candidates[len(candidates)-1].Name()
+
+		// Get core wrap like discord_desktop_core-1
+		dFiles, err = os.ReadDir(path.Join(proposed, versionDir, "modules"))
+		if err != nil {
+			return ""
 		}
-		finalPath = path.Join(proposed, appDir, "resources")
+		candidates = Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && strings.HasPrefix(file.Name(), "discord_desktop_core") })
+		var coreWrap = candidates[len(candidates)-1].Name()
+
+		finalPath = path.Join(proposed, versionDir, "modules", coreWrap, "discord_desktop_core")
 	}
 
 	// Use a separate if statement because forcing same-line } else if { is gross
 	if strings.HasPrefix(proposed, "app-") {
-		finalPath = path.Join(proposed, "resources")
+		var dFiles, err = os.ReadDir(path.Join(proposed, "modules"))
+		if err != nil {
+			return ""
+		}
+		var candidates = Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && strings.HasPrefix(file.Name(), "discord_desktop_core") })
+		var coreWrap = candidates[len(candidates)-1].Name()
+		finalPath = path.Join(proposed, coreWrap, "discord_desktop_core")
 	}
 
-	if selected == "resources" {
+	if selected == "discord_desktop_core" {
 		finalPath = proposed
 	}
 
-	if Exists(finalPath) {
+	// If the path and the asar exist, all good
+	if Exists(finalPath) && Exists(path.Join(finalPath, "core.asar")) {
 		return finalPath
 	}
 
 	return ""
 }
 
-func validateMac(proposed string) string {
-	var finalPath = ""
-	var selected = path.Base(proposed)
-	if strings.HasPrefix(selected, "Discord") && strings.HasSuffix(selected, ".app") {
-		finalPath = path.Join(proposed, "Contents", "Resources")
-	}
 
-	if selected == "Contents" {
-		finalPath = path.Join(proposed, "Resources")
-	}
-
-	if selected == "Resources" {
-		finalPath = proposed
-	}
-
-	if Exists(finalPath) {
-		return finalPath
-	}
-
-	return ""
-}
-
-func validateLinux(proposed string) string {
+func validateMacLinux(proposed string) string {
 	if strings.Contains(proposed, "/snap") {
 		return ""
 	}
@@ -124,23 +128,19 @@ func validateLinux(proposed string) string {
 	var finalPath = ""
 	var selected = path.Base(proposed)
 	if strings.HasPrefix(selected, "discord") {
+		// Get version dir like 1.0.9002
 		var dFiles, err = os.ReadDir(proposed)
 		if err != nil {
 			return ""
 		}
-		var versionDir = ""
-		for _, file := range dFiles {
-			if split := strings.Split(file.Name(), "."); !file.IsDir() || len(split) != 3 {
-				continue
-			}
-			if file.Name() > versionDir {
-				versionDir = file.Name()
-			}
-		}
+		
+		var candidates = Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && len(strings.Split(file.Name(), ".")) == 3 })
+		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
+		var versionDir = candidates[len(candidates)-1].Name()
 		finalPath = path.Join(proposed, versionDir, "modules", "discord_desktop_core")
 	}
 
-	if split := strings.Split(selected, "."); len(split) == 3 {
+	if len(strings.Split(selected, ".")) == 3 {
 		finalPath = path.Join(proposed, "modules", "discord_desktop_core")
 	}
 
@@ -152,7 +152,7 @@ func validateLinux(proposed string) string {
 		finalPath = proposed
 	}
 
-	if Exists(finalPath) {
+	if Exists(finalPath) && Exists(path.Join(finalPath, "core.asar")) {
 		return finalPath
 	}
 
