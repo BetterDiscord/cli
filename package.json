@@ -6,6 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "files": [],
   "scripts": {
     "postinstall": "go-npm install",
     "preuninstall": "go-npm uninstall"

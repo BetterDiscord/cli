@@ -29,3 +29,21 @@ snapshot:
   name_template: "{{ incpatch .Version }}-next"
 release:
   draft: true
+chocolateys:
+  - name: betterdiscordcli
+    owners: BetterDiscord
+    title: BetterDiscord CLI
+    authors: BetterDiscord
+    project_url: https://betterdiscord.app/
+    url_template: "https://github.com/BetterDiscord/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    icon_url: https://betterdiscord.app/resources/branding/logo_solid.png
+    copyright: 2023 BetterDiscord Limited
+    license_url: https://github.com/BetterDiscord/cli/blob/main/LICENSE
+    project_source_url: https://github.com/BetterDiscord/cli
+    docs_url: https://github.com/BetterDiscord/cli/wiki
+    bug_tracker_url: https://github.com/BetterDiscord/cli/issues
+    tags: "betterdiscord cli"
+    summary: A cross-platform CLI for managing BetterDiscord
+    description: A cross-platform CLI for managing BetterDiscord
+    release_notes: "https://github.com/BetterDiscord/cli/releases/tag/v{{ .Version }}"
+    skip_publish: true
