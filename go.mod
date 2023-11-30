@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/shirou/gopsutil/v3 v3.22.10
 	github.com/spf13/cobra v1.6.1
+	golang.org/x/exp v0.0.0-20231127185646-65229373498e
 )
 
 require (
