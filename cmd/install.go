@@ -24,7 +24,13 @@ var installCmd = &cobra.Command{
 	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
 	ValidArgs: ValidArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		var releaseChannel = args[0]
+		var releaseChannel = ""
+		if len(args) > 1 {
+			releaseChannel = "stable"
+		} else {
+			releaseChannel = args[0]
+		}
+
 		if !slices.Contains(ValidArgs, releaseChannel) {
 			log.Fatal("invalid arguments given. valid arguments are: " + strings.Join(ValidArgs, ", "))
 		}
@@ -40,7 +46,7 @@ var installCmd = &cobra.Command{
 			targetExe = "DiscordPTB.exe"
 			break
 		default:
-			targetExe = "Discord.exe"
+			targetExe = ""
 		}
 
 		// Kill Discord if it's running
