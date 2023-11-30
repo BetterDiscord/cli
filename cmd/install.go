@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -15,10 +16,6 @@ import (
 func init() {
 	rootCmd.AddCommand(installCmd)
 }
-func die(message string) {
-	fmt.Println(message)
-	os.Exit(1)
-}
 
 var ValidArgs = []string{"stable", "canary", "ptb"}
 var installCmd = &cobra.Command{
@@ -29,7 +26,7 @@ var installCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var releaseChannel = args[0]
 		if !slices.Contains(ValidArgs, releaseChannel) {
-			die("invalid arguments given. valid arguments are: " + strings.Join(ValidArgs, ", "))
+			log.Fatal("invalid arguments given. valid arguments are: " + strings.Join(ValidArgs, ", "))
 		}
 		var targetExe = ""
 		switch releaseChannel {
@@ -50,29 +47,29 @@ var installCmd = &cobra.Command{
 		var exe = utils.GetProcessExe(targetExe)
 		if len(exe) > 0 {
 			if err := utils.KillProcess(targetExe); err != nil {
-				die("Could not kill Discord")
+				log.Fatal("Could not kill Discord")
 				return
 			}
 		}
 
 		// Make BD directories
 		if err := os.MkdirAll(utils.Data, 0755); err != nil {
-			die("Could not create BetterDiscord folder")
+			log.Fatal("Could not create BetterDiscord folder")
 		}
 
 		if err := os.MkdirAll(utils.Plugins, 0755); err != nil {
-			die("Could not create plugins folder")
+			log.Fatal("Could not create plugins folder")
 		}
 
 		if err := os.MkdirAll(utils.Themes, 0755); err != nil {
-			die("Could not create theme folder")
+			log.Fatal("Could not create theme folder")
 		}
 
 		// Get download URL from GitHub API
 		var apiData, err = utils.DownloadJSON[utils.Release]("https://api.github.com/repos/BetterDiscord/BetterDiscord/releases/latest")
 		if err != nil {
 			fmt.Println("Could not get API response")
-			die(err.Error())
+			log.Fatal(err.Error())
 		}
 
 		var index = 0
@@ -89,7 +86,7 @@ var installCmd = &cobra.Command{
 		var asarPath = path.Join(utils.Data, "betterdiscord.asar")
 		err = utils.DownloadFile(downloadUrl, asarPath)
 		if err != nil {
-			die("Could not download asar")
+			log.Fatal("Could not download asar")
 		}
 
 		// Inject shim loader
@@ -100,7 +97,7 @@ var installCmd = &cobra.Command{
 		indString = indString + "\nmodule.exports = require(\"./core.asar\");"
 
 		if err := os.WriteFile(path.Join(corePath, "index.js"), []byte(indString), 0755); err != nil {
-			die("Could not write index.js in discord_desktop_core!")
+			log.Fatal("Could not write index.js in discord_desktop_core!")
 		}
 
 		// Launch Discord if we killed it
