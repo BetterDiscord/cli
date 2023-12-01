@@ -17,6 +17,7 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 }
 
+var releaseChannel = ""
 var ValidArgs = []string{"stable", "canary", "ptb"}
 var installCmd = &cobra.Command{
 	Use:       "install [" + strings.Join(ValidArgs, ", ") + "]",
@@ -24,7 +25,7 @@ var installCmd = &cobra.Command{
 	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
 	ValidArgs: ValidArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		var releaseChannel = ""
+
 		if len(args) < 1 {
 			releaseChannel = "stable"
 		} else {
