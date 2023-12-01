@@ -25,7 +25,7 @@ var installCmd = &cobra.Command{
 	ValidArgs: ValidArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		var releaseChannel = ""
-		if len(args) > 1 {
+		if len(args) < 1 {
 			releaseChannel = "stable"
 		} else {
 			releaseChannel = args[0]
