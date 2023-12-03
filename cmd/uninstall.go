@@ -59,7 +59,7 @@ var uninstallCmd = &cobra.Command{
 		var exe = utils.GetProcessExe(targetExe)
 		if len(exe) > 0 {
 			if err := utils.KillProcess(targetExe); err != nil {
-				fmt.Println("Could not kill Discord")
+				log.Fatal("Could not kill Discord")
 				return
 			}
 		}

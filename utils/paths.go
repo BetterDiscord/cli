@@ -2,7 +2,6 @@ package utils
 
 import (
 	"io/fs"
-	. "log"
 	"os"
 	"path"
 	"runtime"
