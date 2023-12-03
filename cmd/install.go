@@ -2,28 +2,39 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 
+	"github.com/betterdiscord/cli/utils"
 	"github.com/spf13/cobra"
-
-	utils "github.com/betterdiscord/cli/utils"
+	"golang.org/x/exp/slices"
 )
 
 func init() {
 	rootCmd.AddCommand(installCmd)
 }
 
+var releaseChannel = ""
+var ValidArgs = []string{"stable", "canary", "ptb"}
 var installCmd = &cobra.Command{
 	Use:       "install <channel>",
 	Short:     "Installs BetterDiscord to your Discord",
 	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
-	ValidArgs: []string{"canary", "stable", "ptb"},
-	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	ValidArgs: ValidArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		var releaseChannel = args[0]
+
+		if len(args) < 1 {
+			releaseChannel = "stable"
+		} else {
+			releaseChannel = args[0]
+		}
+
+		if !slices.Contains(ValidArgs, releaseChannel) {
+			log.Fatal("invalid arguments given. valid arguments are: " + strings.Join(ValidArgs, ", "))
+		}
 		var targetExe = ""
 		switch releaseChannel {
 		case "stable":
@@ -43,33 +54,29 @@ var installCmd = &cobra.Command{
 		var exe = utils.GetProcessExe(targetExe)
 		if len(exe) > 0 {
 			if err := utils.KillProcess(targetExe); err != nil {
-				fmt.Println("Could not kill Discord")
+				log.Fatal("Could not kill Discord")
 				return
 			}
 		}
 
 		// Make BD directories
 		if err := os.MkdirAll(utils.Data, 0755); err != nil {
-			fmt.Println("Could not create BetterDiscord folder")
-			return
+			log.Fatal("Could not create BetterDiscord folder")
 		}
 
 		if err := os.MkdirAll(utils.Plugins, 0755); err != nil {
-			fmt.Println("Could not create plugins folder")
-			return
+			log.Fatal("Could not create plugins folder")
 		}
 
 		if err := os.MkdirAll(utils.Themes, 0755); err != nil {
-			fmt.Println("Could not create theme folder")
-			return
+			log.Fatal("Could not create theme folder")
 		}
 
 		// Get download URL from GitHub API
 		var apiData, err = utils.DownloadJSON[utils.Release]("https://api.github.com/repos/BetterDiscord/BetterDiscord/releases/latest")
 		if err != nil {
 			fmt.Println("Could not get API response")
-			fmt.Println(err)
-			return
+			log.Fatal(err.Error())
 		}
 
 		var index = 0
@@ -86,8 +93,7 @@ var installCmd = &cobra.Command{
 		var asarPath = path.Join(utils.Data, "betterdiscord.asar")
 		err = utils.DownloadFile(downloadUrl, asarPath)
 		if err != nil {
-			fmt.Println("Could not download asar")
-			return
+			log.Fatal("Could not download asar")
 		}
 
 		// Inject shim loader
@@ -98,14 +104,16 @@ var installCmd = &cobra.Command{
 		indString = indString + "\nmodule.exports = require(\"./core.asar\");"
 
 		if err := os.WriteFile(path.Join(corePath, "index.js"), []byte(indString), 0755); err != nil {
-			fmt.Println("Could not write index.js in discord_desktop_core!")
-			return
+			log.Fatal("Could not write index.js in discord_desktop_core!")
 		}
 
 		// Launch Discord if we killed it
 		if len(exe) > 0 {
 			var cmd = exec.Command(exe)
-			cmd.Start()
+			var err = cmd.Start()
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	},
 }
