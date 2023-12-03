@@ -2,7 +2,7 @@ package utils
 
 import (
 	"io/fs"
-	"log"
+	. "log"
 	"os"
 	"path"
 	"runtime"
@@ -83,7 +83,7 @@ func validateWindows(proposed string) string {
 		var candidates = Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && len(strings.Split(file.Name(), ".")) == 3 })
 		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
 		if len(candidates) == 0 {
-			log.Fatal("candidates is zero") //TODO
+			Fatalf("candidates is zero for path %s", proposed) //TODO
 		}
 		var versionDir = candidates[len(candidates)-1].Name()
 
