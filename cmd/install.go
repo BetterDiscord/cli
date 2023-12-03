@@ -20,7 +20,7 @@ func init() {
 var releaseChannel = ""
 var ValidArgs = []string{"stable", "canary", "ptb"}
 var installCmd = &cobra.Command{
-	Use:       "install [" + strings.Join(ValidArgs, ", ") + "]",
+	Use:       "install <channel>",
 	Short:     "Installs BetterDiscord to your Discord",
 	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
 	ValidArgs: ValidArgs,
@@ -110,7 +110,10 @@ var installCmd = &cobra.Command{
 		// Launch Discord if we killed it
 		if len(exe) > 0 {
 			var cmd = exec.Command(exe)
-			_ = cmd.Start()
+			var err = cmd.Start()
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	},
 }

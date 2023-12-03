@@ -69,7 +69,7 @@ func Filter[T any](source []T, filterFunc func(T) bool) (ret []T) {
 	return returnArray
 }
 
-func validateWindows(proposed string) string {
+func validateWindows(proposed string) (string) {
 	var finalPath = ""
 	var selected = path.Base(proposed)
 	if strings.HasPrefix(selected, "Discord") {
@@ -83,7 +83,7 @@ func validateWindows(proposed string) string {
 		var candidates = Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && len(strings.Split(file.Name(), ".")) == 3 })
 		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
 		if len(candidates) == 0 {
-			log.Fatalf("path [%s] not found", proposed) //TODO
+			return "",
 		}
 		var versionDir = candidates[len(candidates)-1].Name()
 

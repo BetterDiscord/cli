@@ -67,7 +67,10 @@ var uninstallCmd = &cobra.Command{
 		// Launch Discord if we killed it
 		if len(exe) > 0 {
 			var cmd = exec.Command(exe)
-			cmd.Start()
+			var err = cmd.Start()
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	},
 }
