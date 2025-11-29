@@ -9,7 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	utils "github.com/betterdiscord/cli/utils"
+	models "github.com/betterdiscord/cli/internal/models"
+	utils "github.com/betterdiscord/cli/internal/utils"
 )
 
 func init() {
@@ -65,7 +66,7 @@ var installCmd = &cobra.Command{
 		}
 
 		// Get download URL from GitHub API
-		var apiData, err = utils.DownloadJSON[utils.Release]("https://api.github.com/repos/BetterDiscord/BetterDiscord/releases/latest")
+		var apiData, err = utils.DownloadJSON[models.Release]("https://api.github.com/repos/BetterDiscord/BetterDiscord/releases/latest")
 		if err != nil {
 			fmt.Println("Could not get API response")
 			fmt.Println(err)
