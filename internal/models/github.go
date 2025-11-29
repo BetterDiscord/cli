@@ -1,10 +1,10 @@
-package utils
+package models
 
 import (
 	"time"
 )
 
-type Release struct {
+type GitHubRelease struct {
 	URL       string `json:"url"`
 	AssetsURL string `json:"assets_url"`
 	UploadURL string `json:"upload_url"`
