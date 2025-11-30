@@ -78,7 +78,7 @@ func GetInstallation(base ...string) *BDInstall {
 		}
 
 		configDir, _ := os.UserConfigDir()
-		globalInstance = New(configDir)
+		globalInstance = GetInstallation(configDir)
 
 		return globalInstance
 	}
