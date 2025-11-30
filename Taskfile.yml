@@ -1,0 +1,285 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  BINARY_NAME: bdcli
+  MAIN_PACKAGE: ./main.go
+  BUILD_DIR: ./dist
+  GO_VERSION: '1.19'
+
+env:
+  CGO_ENABLED: 0
+  GOOS: '{{OS}}'
+  GOARCH: '{{ARCH}}'
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list-all
+    silent: true
+
+  # Development tasks
+  run:
+    desc: Run the CLI application
+    cmds:
+      - go run {{.MAIN_PACKAGE}} {{.CLI_ARGS}}
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+
+  run:install:
+    desc: Run the install command
+    cmds:
+      - go run {{.MAIN_PACKAGE}} install {{.CLI_ARGS}}
+
+  run:uninstall:
+    desc: Run the uninstall command
+    cmds:
+      - go run {{.MAIN_PACKAGE}} uninstall {{.CLI_ARGS}}
+
+  run:version:
+    desc: Run the version command
+    cmds:
+      - go run {{.MAIN_PACKAGE}} version {{.CLI_ARGS}}
+
+  # Build tasks
+  build:
+    desc: Build the binary for current platform
+    cmds:
+      - go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}{{if eq OS "windows"}}.exe{{end}} {{.MAIN_PACKAGE}}
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+    generates:
+      - '{{.BUILD_DIR}}/{{.BINARY_NAME}}{{if eq OS "windows"}}.exe{{end}}'
+
+  build:all:
+    desc: Build binaries for all platforms using GoReleaser
+    cmds:
+      - goreleaser build --snapshot --clean
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+      - .goreleaser.yaml
+
+  build:linux:
+    desc: Build for Linux (amd64 and arm64)
+    cmds:
+      - GOOS=linux GOARCH=amd64 go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-linux-amd64 {{.MAIN_PACKAGE}}
+      - GOOS=linux GOARCH=arm64 go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-linux-arm64 {{.MAIN_PACKAGE}}
+
+  build:windows:
+    desc: Build for Windows (amd64 and arm64)
+    cmds:
+      - GOOS=windows GOARCH=amd64 go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-windows-amd64.exe {{.MAIN_PACKAGE}}
+      - GOOS=windows GOARCH=arm64 go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-windows-arm64.exe {{.MAIN_PACKAGE}}
+
+  build:darwin:
+    desc: Build for macOS (amd64 and arm64)
+    cmds:
+      - GOOS=darwin GOARCH=amd64 go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-darwin-amd64 {{.MAIN_PACKAGE}}
+      - GOOS=darwin GOARCH=arm64 go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}}-darwin-arm64 {{.MAIN_PACKAGE}}
+
+  install:
+    desc: Install the binary to $GOPATH/bin
+    deps: [build]
+    cmds:
+      - go install {{.MAIN_PACKAGE}}
+
+  # Testing tasks
+  test:
+    desc: Run all tests
+    cmds:
+      - go test -v -race ./...
+
+  test:coverage:
+    desc: Run tests with coverage
+    cmds:
+      - go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+      - go tool cover -html=coverage.out -o coverage.html
+    generates:
+      - coverage.out
+      - coverage.html
+
+  test:bench:
+    desc: Run benchmark tests
+    cmds:
+      - go test -bench=. -benchmem ./...
+
+  # Code quality tasks
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run ./...
+
+  lint:fix:
+    desc: Run golangci-lint with auto-fix
+    cmds:
+      - golangci-lint run --fix ./...
+
+  fmt:
+    desc: Format Go code
+    cmds:
+      - go fmt ./...
+      - gofumpt -l -w .
+    preconditions:
+      - sh: command -v gofumpt
+        msg: 'gofumpt not installed. Run: go install mvdan.cc/gofumpt@latest'
+
+  fmt:check:
+    desc: Check if code is formatted
+    cmds:
+      - |
+        UNFORMATTED=$(gofmt -l .)
+        if [ -n "$UNFORMATTED" ]; then
+          echo "The following files are not gofmt-formatted:" >&2
+          echo "$UNFORMATTED" >&2
+          exit 1
+        fi
+        # Also check gofumpt stricter formatting if available
+        if command -v gofumpt >/dev/null 2>&1; then
+          STRICT=$(gofumpt -l .)
+          if [ -n "$STRICT" ]; then
+            echo "The following files need gofumpt formatting:" >&2
+            echo "$STRICT" >&2
+            echo "Run: gofumpt -l -w ." >&2
+            exit 1
+          fi
+        fi
+        echo "Formatting OK"
+    preconditions:
+      - sh: command -v gofmt
+        msg: 'gofmt not found'
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  # Dependency management
+  deps:
+    desc: Download Go dependencies
+    cmds:
+      - go mod download
+
+  deps:tidy:
+    desc: Tidy Go dependencies
+    cmds:
+      - go mod tidy
+
+  deps:verify:
+    desc: Verify Go dependencies
+    cmds:
+      - go mod verify
+
+  deps:upgrade:
+    desc: Upgrade all Go dependencies
+    cmds:
+      - go get -u ./...
+      - go mod tidy
+
+  # Release tasks
+  release:
+    desc: Create a new release (runs GoReleaser)
+    cmds:
+      - goreleaser release --clean
+    preconditions:
+      - sh: command -v goreleaser
+        msg: 'goreleaser not installed. See: https://goreleaser.com/install/'
+      - sh: git diff-index --quiet HEAD
+        msg: 'Git working directory is not clean. Commit or stash changes first.'
+
+  release:snapshot:
+    desc: Create a snapshot release (no publish)
+    cmds:
+      - goreleaser release --snapshot --clean
+
+  release:test:
+    desc: Test the release process without publishing
+    cmds:
+      - goreleaser release --skip=publish --clean
+
+  release:npm:
+    desc: Publish to npm after GitHub release
+    cmds:
+      - npm publish
+    preconditions:
+      - sh: test -f package.json
+        msg: 'package.json not found'
+
+  # Cleanup tasks
+  clean:
+    desc: Clean build artifacts and caches
+    cmds:
+      - rm -rf {{.BUILD_DIR}}
+      - rm -rf coverage.out coverage.html
+      - go clean -cache -testcache -modcache
+
+  clean:build:
+    desc: Clean only build artifacts
+    cmds:
+      - rm -rf {{.BUILD_DIR}}
+
+  # Setup and validation tasks
+  setup:
+    desc: Setup development environment
+    cmds:
+      - task: deps
+      - task: tools
+
+  tools:
+    desc: Install development tools
+    cmds:
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install mvdan.cc/gofumpt@latest
+      - go install github.com/goreleaser/goreleaser/v2@latest
+
+  check:
+    desc: Run all checks (fmt, vet, lint, test)
+    cmds:
+      - task: fmt:check
+      - task: vet
+      - task: lint
+      - task: test
+
+  validate:
+    desc: Validate goreleaser configuration
+    cmds:
+      - goreleaser check
+    preconditions:
+      - sh: command -v goreleaser
+        msg: 'goreleaser not installed. See: https://goreleaser.com/install/'
+
+  # CI/CD tasks
+  ci:
+    desc: Run CI checks (used in CI/CD pipelines)
+    cmds:
+      - task: deps:verify
+      - task: fmt:check
+      - task: vet
+      - task: test:coverage
+      - task: build
+
+  # Documentation tasks
+  docs:
+    desc: Generate CLI documentation
+    cmds:
+      - go run {{.MAIN_PACKAGE}} --help > docs/CLI.md
+      - echo "CLI documentation generated in docs/CLI.md"
+
+  # Info tasks
+  info:
+    desc: Display project information
+    cmds:
+      - echo "Binary Name:{{.BINARY_NAME}}"
+      - echo "Go Version:{{.GO_VERSION}}"
+      - echo "Current OS:{{OS}}"
+      - echo "Current Arch:{{ARCH}}"
+      - go version
+      - echo "Git Branch:" && git branch --show-current
+      - echo "Git Commit:" && git rev-parse --short HEAD
+    silent: true

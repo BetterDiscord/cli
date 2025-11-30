@@ -1,2 +1,7 @@
 node_modules/
 dist/
+.task/
+
+# Test coverage
+coverage.out
+coverage.html
