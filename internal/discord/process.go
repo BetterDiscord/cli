@@ -13,38 +13,38 @@ func (discord *DiscordInstall) restart() error {
 	exeName := discord.getFullExe()
 
 	if running, _ := discord.isRunning(); !running {
-		log.Printf("✅ %s not running", discord.channel.Name())
+		log.Printf("✅ %s not running", discord.Channel.Name())
 		return nil
 	}
 
 	if err := discord.kill(); err != nil {
-		log.Printf("❌ Unable to restart %s, please do so manually!", discord.channel.Name())
+		log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
 		log.Printf("❌ %s", err.Error())
 		return err
 	}
 
 	// Use binary found in killing process
 	cmd := exec.Command(exeName)
-	if discord.isFlatpak {
-		cmd = exec.Command("flatpak", "run", "com.discordapp."+discord.channel.Exe())
-	} else if discord.isSnap {
-		cmd = exec.Command("snap", "run", discord.channel.Exe())
+	if discord.IsFlatpak {
+		cmd = exec.Command("flatpak", "run", "com.discordapp."+discord.Channel.Exe())
+	} else if discord.IsSnap {
+		cmd = exec.Command("snap", "run", discord.Channel.Exe())
 	}
 
 	// Set working directory to user home
 	cmd.Dir, _ = os.UserHomeDir()
 
 	if err := cmd.Start(); err != nil {
-		log.Printf("❌ Unable to restart %s, please do so manually!", discord.channel.Name())
+		log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
 		log.Printf("❌ %s", err.Error())
 		return err
 	}
-	log.Printf("✅ Restarted %s", discord.channel.Name())
+	log.Printf("✅ Restarted %s", discord.Channel.Name())
 	return nil
 }
 
 func (discord *DiscordInstall) isRunning() (bool, error) {
-	name := discord.channel.Exe()
+	name := discord.Channel.Exe()
 	processes, err := process.Processes()
 
 	// If we can't even list processes, bail out
@@ -72,7 +72,7 @@ func (discord *DiscordInstall) isRunning() (bool, error) {
 }
 
 func (discord *DiscordInstall) kill() error {
-	name := discord.channel.Exe()
+	name := discord.Channel.Exe()
 	processes, err := process.Processes()
 
 	// If we can't even list processes, bail out
@@ -105,7 +105,7 @@ func (discord *DiscordInstall) kill() error {
 }
 
 func (discord *DiscordInstall) getFullExe() string {
-	name := discord.channel.Exe()
+	name := discord.Channel.Exe()
 
 	var exe = ""
 	processes, err := process.Processes()

@@ -9,15 +9,11 @@ import (
 )
 
 type DiscordInstall struct {
-	corePath  string                `json:"corePath"`
-	channel   models.DiscordChannel `json:"channel"`
-	version   string                `json:"version"`
-	isFlatpak bool                  `json:"isFlatpak"`
-	isSnap    bool                  `json:"isSnap"`
-}
-
-func (discord *DiscordInstall) GetPath() string {
-	return discord.corePath
+	CorePath  string                `json:"corePath"`
+	Channel   models.DiscordChannel `json:"channel"`
+	Version   string                `json:"version"`
+	IsFlatpak bool                  `json:"isFlatpak"`
+	IsSnap    bool                  `json:"isSnap"`
 }
 
 // InstallBD installs BetterDiscord into this Discord installation
@@ -26,8 +22,8 @@ func (discord *DiscordInstall) InstallBD() error {
 	bd := betterdiscord.GetInstallation()
 
 	// Snaps get their own local BD install
-	if discord.isSnap {
-		bd = betterdiscord.GetInstallation(filepath.Clean(filepath.Join(discord.corePath, "..", "..", "..", "..")))
+	if discord.IsSnap {
+		bd = betterdiscord.GetInstallation(filepath.Clean(filepath.Join(discord.CorePath, "..", "..", "..", "..")))
 	}
 
 	// Make BetterDiscord folders
@@ -55,7 +51,7 @@ func (discord *DiscordInstall) InstallBD() error {
 	log.Printf("")
 
 	// Terminate and restart Discord if possible
-	log.Printf("## Restarting %s...", discord.channel.Name())
+	log.Printf("## Restarting %s...", discord.Channel.Name())
 	if err := discord.restart(); err != nil {
 		return err
 	}
@@ -72,7 +68,7 @@ func (discord *DiscordInstall) UninstallBD() error {
 	}
 	log.Printf("")
 
-	log.Printf("## Restarting %s...", discord.channel.Name())
+	log.Printf("## Restarting %s...", discord.Channel.Name())
 	if err := discord.restart(); err != nil {
 		return err
 	}
@@ -91,11 +87,11 @@ func (discord *DiscordInstall) RepairBD() error {
 	bd := betterdiscord.GetInstallation()
 
 	// Snaps get their own local BD install
-	if discord.isSnap {
-		bd = betterdiscord.GetInstallation(filepath.Clean(filepath.Join(discord.corePath, "..", "..", "..", "..")))
+	if discord.IsSnap {
+		bd = betterdiscord.GetInstallation(filepath.Clean(filepath.Join(discord.CorePath, "..", "..", "..", "..")))
 	}
 
-	if err := bd.Repair(discord.channel); err != nil {
+	if err := bd.Repair(discord.Channel); err != nil {
 		return err
 	}
 

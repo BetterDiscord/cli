@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .task/
+notes/
 
 # Test coverage
 coverage.out

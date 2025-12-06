@@ -11,30 +11,47 @@ import (
 )
 
 func init() {
+	installCmd.Flags().StringP("path", "p", "", "Path to a Discord installation")
+	installCmd.Flags().StringP("channel", "c", "stable", "Discord release channel (stable|ptb|canary)")
 	rootCmd.AddCommand(installCmd)
 }
 
 var installCmd = &cobra.Command{
-	Use:       "install <channel>",
-	Short:     "Installs BetterDiscord to your Discord",
-	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
-	ValidArgs: []string{"canary", "stable", "ptb"},
-	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-	Run: func(cmd *cobra.Command, args []string) {
-		var releaseChannel = args[0]
-		var corePath = discord.GetSuggestedPath(models.ParseChannel(releaseChannel))
-		var install = discord.ResolvePath(corePath)
+	Use:   "install",
+	Short: "Installs BetterDiscord to your Discord",
+	Long:  "Install BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pathFlag, _ := cmd.Flags().GetString("path")
+		channelFlag, _ := cmd.Flags().GetString("channel")
 
-		if install == nil {
-			fmt.Printf("❌ Could not find a valid %s installation to install to.\n", releaseChannel)
-			return
+		pathProvided := pathFlag != ""
+		channelProvided := cmd.Flags().Changed("channel")
+
+		if pathProvided && channelProvided {
+			return fmt.Errorf("--path and --channel are mutually exclusive")
+		}
+
+		var install *discord.DiscordInstall
+
+		if pathProvided {
+			install = discord.ResolvePath(pathFlag)
+			if install == nil {
+				return fmt.Errorf("could not find a valid Discord installation at %s", pathFlag)
+			}
+		} else {
+			channel := models.ParseChannel(channelFlag)
+			corePath := discord.GetSuggestedPath(channel)
+			install = discord.ResolvePath(corePath)
+			if install == nil {
+				return fmt.Errorf("could not find a valid %s installation to install to", channelFlag)
+			}
 		}
 
 		if err := install.InstallBD(); err != nil {
-			fmt.Printf("❌ Installation failed: %s\n", err.Error())
-			return
+			return fmt.Errorf("installation failed: %w", err)
 		}
 
-		fmt.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.GetPath()))
+		fmt.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
+		return nil
 	},
 }

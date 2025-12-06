@@ -67,11 +67,11 @@ func Validate(proposed string) *DiscordInstall {
 	// If the path and the asar exist, all good
 	if utils.Exists(finalPath) && utils.Exists(filepath.Join(finalPath, "core.asar")) {
 		return &DiscordInstall{
-			corePath:  finalPath,
-			channel:   GetChannel(finalPath),
-			version:   GetVersion(finalPath),
-			isFlatpak: false,
-			isSnap:    false,
+			CorePath:  finalPath,
+			Channel:   GetChannel(finalPath),
+			Version:   GetVersion(finalPath),
+			IsFlatpak: false,
+			IsSnap:    false,
 		}
 	}
 
