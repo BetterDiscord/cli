@@ -31,6 +31,11 @@ func init() {
 		// Core: `snap/discord-canary/current/.config/discordcanary/0.0.90/modules/discord_desktop_core/core.asar`.
 		// NOTE: Snap user data always exists, even when the Snap isn't mounted/running.
 		filepath.Join(home, "snap", "{channel-}", "current", ".config", "{channel}"),
+
+		// WSL. Data is stored under the Windows user's AppData folder.
+		// Example: `/mnt/c/Users/Username/AppData/Local/DiscordCanary`.
+		// Core: `/mnt/c/Users/Username/AppData/Local/DiscordCanary/app-1.0.9218/modules/discord_desktop_core-1/discord_desktop_core core.asar`.
+		filepath.Join(os.Getenv("WIN_HOME"), "AppData", "Local", "{CHANNEL}"),
 	}
 
 	for _, channel := range models.Channels {
@@ -57,7 +62,7 @@ func init() {
 func Validate(proposed string) *DiscordInstall {
 	var finalPath = ""
 	var selected = filepath.Base(proposed)
-	if strings.HasPrefix(selected, "discord") {
+	if strings.HasPrefix(strings.ToLower(selected), "discord") {
 		// Get version dir like 1.0.9002
 		var dFiles, err = os.ReadDir(proposed)
 		if err != nil {
@@ -68,6 +73,11 @@ func Validate(proposed string) *DiscordInstall {
 		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
 		var versionDir = candidates[len(candidates)-1].Name()
 		finalPath = filepath.Join(proposed, versionDir, "modules", "discord_desktop_core")
+
+		// WSL installs have an extra layer
+		if (os.Getenv("WSL_DISTRO_NAME") != "" && os.Getenv("WIN_HOME") != "") && strings.Contains(proposed, "AppData") {
+			finalPath = filepath.Join(proposed, versionDir, "modules", "discord_desktop_core-1", "discord_desktop_core")
+		}
 	}
 
 	if len(strings.Split(selected, ".")) == 3 {
