@@ -1,0 +1,92 @@
+package cmd
+
+import (
+	"fmt"
+	"os"
+	"text/tabwriter"
+
+	"github.com/betterdiscord/cli/internal/betterdiscord"
+	"github.com/spf13/cobra"
+)
+
+func init() {
+	// Parent command: plugins
+	pluginsCmd.AddCommand(pluginsListCmd)
+	pluginsCmd.AddCommand(pluginsInstallCmd)
+	pluginsCmd.AddCommand(pluginsRemoveCmd)
+	pluginsCmd.AddCommand(pluginsUpdateCmd)
+	rootCmd.AddCommand(pluginsCmd)
+}
+
+var pluginsCmd = &cobra.Command{
+	Use:   "plugins",
+	Short: "Manage BetterDiscord plugins",
+	Long:  "List, install, remove, and update BetterDiscord plugins.",
+}
+
+var pluginsListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List installed plugins",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		items, err := betterdiscord.ListAddons(betterdiscord.AddonPlugin)
+		if err != nil {
+			return err
+		}
+		if len(items) == 0 {
+			fmt.Println("No plugins installed.")
+			return nil
+		}
+
+		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		fmt.Fprintln(tw, "NAME\tSIZE (KB)\tMODIFIED")
+		for _, item := range items {
+			fmt.Fprintf(tw, "%s\t%.1f\t%s\n", item.Filename, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
+		}
+		return tw.Flush()
+	},
+}
+
+var pluginsInstallCmd = &cobra.Command{
+	Use:   "install <name|id|url>",
+	Short: "Install a plugin by name, ID, or direct URL",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		identifier := args[0]
+		resolved, err := betterdiscord.InstallAddon(betterdiscord.AddonPlugin, identifier)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("✅ Plugin installed at %s\n", resolved.URL)
+		return nil
+	},
+}
+
+var pluginsRemoveCmd = &cobra.Command{
+	Use:     "remove <name|id>",
+	Aliases: []string{"uninstall"},
+	Short:   "Remove an installed plugin",
+	Args:    cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		identifier := args[0]
+		if err := betterdiscord.RemoveAddon(betterdiscord.AddonPlugin, identifier); err != nil {
+			return err
+		}
+		fmt.Printf("Removed plugin %s\n", identifier)
+		return nil
+	},
+}
+
+var pluginsUpdateCmd = &cobra.Command{
+	Use:   "update <name|id|url>",
+	Short: "Update a plugin by name, ID, or URL",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		identifier := args[0]
+		resolved, err := betterdiscord.UpdateAddon(betterdiscord.AddonPlugin, identifier)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("✅ Plugin updated at %s\n", resolved.URL)
+		return nil
+	},
+}
