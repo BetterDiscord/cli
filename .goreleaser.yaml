@@ -27,7 +27,7 @@ builds:
       - -s -w
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
-      - -X main.date={{.Date}}
+      - -X main.date={{.CommitTimestamp}}
     mod_timestamp: '{{ .CommitTimestamp }}'
 
 # Our binaries are small, so we can skip UPX compression
@@ -145,25 +145,27 @@ winget:
           branch: master
         draft: false
 
-chocolateys:
-  - name: betterdiscordcli
-    owners: BetterDiscord
-    title: BetterDiscord CLI
-    authors: BetterDiscord
-    project_url: https://betterdiscord.app/
-    url_template: "https://github.com/BetterDiscord/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    icon_url: https://betterdiscord.app/resources/branding/logo_solid.png
-    copyright: 2025 BetterDiscord Limited
-    license_url: https://github.com/BetterDiscord/cli/blob/main/LICENSE
-    project_source_url: https://github.com/BetterDiscord/cli
-    docs_url: https://docs.betterdiscord.app/
-    bug_tracker_url: https://github.com/BetterDiscord/cli/issues
-    tags: "betterdiscord cli discord"
-    summary: A cross-platform CLI for managing BetterDiscord
-    description: |
-      A cross-platform CLI for managing BetterDiscord.
-      Provides commands to install, uninstall, and manage BetterDiscord on your system.
-    release_notes: "https://github.com/BetterDiscord/cli/releases/tag/v{{ .Version }}"
+# Can't do this on linux or macOS, so we'll just skip it for now.
+# We can always add it back later if we want to support it.
+# chocolateys:
+#   - name: betterdiscordcli
+#     owners: BetterDiscord
+#     title: BetterDiscord CLI
+#     authors: BetterDiscord
+#     project_url: https://betterdiscord.app/
+#     url_template: "https://github.com/BetterDiscord/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+#     icon_url: https://betterdiscord.app/resources/branding/logo_solid.png
+#     copyright: 2025 BetterDiscord Limited
+#     license_url: https://github.com/BetterDiscord/cli/blob/main/LICENSE
+#     project_source_url: https://github.com/BetterDiscord/cli
+#     docs_url: https://docs.betterdiscord.app/
+#     bug_tracker_url: https://github.com/BetterDiscord/cli/issues
+#     tags: "betterdiscord cli discord"
+#     summary: A cross-platform CLI for managing BetterDiscord
+#     description: |
+#       A cross-platform CLI for managing BetterDiscord.
+#       Provides commands to install, uninstall, and manage BetterDiscord on your system.
+#     release_notes: "https://github.com/BetterDiscord/cli/releases/tag/v{{ .Version }}"
 
 
 

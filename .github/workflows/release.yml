@@ -6,6 +6,7 @@ on:
       - 'v*'
 
 permissions:
+  id-token: write  # Required for NPM OIDC
   contents: write
   packages: write
 
@@ -14,18 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.19'
+          go-version: '1.26'
           cache: true
 
-      - name: Run tests
-        run: go test -v -race ./...
+      - name: Install Task
+        uses: go-task/setup-task@v1
+
+      - name: Run sanity checks and tests
+        run: task ci
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -35,9 +39,13 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: dist
-          path: dist/
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish to npm
+        run: npm publish

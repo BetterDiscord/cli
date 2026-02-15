@@ -73,7 +73,11 @@ func DownloadJSON[T any](url string) (T, error) {
 		return data, fmt.Errorf("Bad status: %s", resp.Status)
 	}
 
-	json.NewDecoder(resp.Body).Decode(&data)
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&data)
+	if err != nil {
+		return data, err
+	}
 
 	return data, nil
 }

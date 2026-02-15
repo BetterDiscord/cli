@@ -39,11 +39,11 @@ type GitHubRelease struct {
 	CreatedAt       time.Time `json:"created_at"`
 	PublishedAt     time.Time `json:"published_at"`
 	Assets          []struct {
-		URL      string      `json:"url"`
-		ID       int         `json:"id"`
-		NodeID   string      `json:"node_id"`
-		Name     string      `json:"name"`
-		Label    interface{} `json:"label"`
+		URL      string `json:"url"`
+		ID       int    `json:"id"`
+		NodeID   string `json:"node_id"`
+		Name     string `json:"name"`
+		Label    any    `json:"label"`
 		Uploader struct {
 			Login             string `json:"login"`
 			ID                int    `json:"id"`

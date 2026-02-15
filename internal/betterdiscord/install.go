@@ -81,7 +81,7 @@ func GetInstallation(base ...string) *BDInstall {
 		configDir, _ := os.UserConfigDir()
 
 		// Handle WSL with Windows home directory
-		if (os.Getenv("WSL_DISTRO_NAME") != "" && os.Getenv("WIN_HOME") != "") {
+		if os.Getenv("WSL_DISTRO_NAME") != "" && os.Getenv("WIN_HOME") != "" {
 			configDir = filepath.Join(os.Getenv("WIN_HOME"), "AppData", "Roaming")
 		}
 

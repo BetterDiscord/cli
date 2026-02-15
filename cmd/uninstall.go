@@ -31,17 +31,15 @@ var uninstallCmd = &cobra.Command{
 		}
 
 		var install *discord.DiscordInstall
-		var resolvedPath string
 
 		if pathProvided {
-			resolvedPath = pathFlag
 			install = discord.ResolvePath(pathFlag)
 			if install == nil {
 				return fmt.Errorf("could not find a valid Discord installation at %s", pathFlag)
 			}
 		} else {
 			channel := models.ParseChannel(channelFlag)
-			resolvedPath = discord.GetSuggestedPath(channel)
+			resolvedPath := discord.GetSuggestedPath(channel)
 			install = discord.ResolvePath(resolvedPath)
 			if install == nil {
 				return fmt.Errorf("could not find a valid %s installation to uninstall", channelFlag)

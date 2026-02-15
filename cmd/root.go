@@ -14,7 +14,7 @@ func init() {
 var rootCmd = &cobra.Command{
 	Use:   "bdcli",
 	Short: "CLI for managing BetterDiscord",
-	Long: `A cross-platform CLI for installing, updating, and managing BetterDiscord.`,
+	Long:  `A cross-platform CLI for installing, updating, and managing BetterDiscord.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Do Stuff Here
 		fmt.Println("You should probably use a subcommand")
