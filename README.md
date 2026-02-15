@@ -29,6 +29,18 @@ npm install -g @betterdiscord/cli
 go install github.com/betterdiscord/cli@latest
 ```
 
+### Via winget (Windows)
+
+```bash
+winget install betterdiscord.cli
+```
+
+### Via Homebrew/Linuxbrew
+
+```bash
+brew install betterdiscord/tap/bdcli
+```
+
 ### Download Binary
 
 Download the latest release for your platform from the [releases page](https://github.com/BetterDiscord/cli/releases).
@@ -40,9 +52,15 @@ Download the latest release for your platform from the [releases page](https://g
 Install BetterDiscord to a specific Discord channel:
 
 ```bash
-bdcli install stable   # Install to Discord Stable
-bdcli install ptb      # Install to Discord PTB
-bdcli install canary   # Install to Discord Canary
+bdcli install --channel stable   # Install to Discord Stable
+bdcli install --channel ptb      # Install to Discord PTB
+bdcli install --channel canary   # Install to Discord Canary
+```
+
+Install BetterDiscord by providing a Discord install path:
+
+```bash
+bdcli install --path /path/to/Discord
 ```
 
 ### Uninstall BetterDiscord
@@ -50,9 +68,15 @@ bdcli install canary   # Install to Discord Canary
 Uninstall BetterDiscord from a specific Discord channel:
 
 ```bash
-bdcli uninstall stable   # Uninstall from Discord Stable
-bdcli uninstall ptb      # Uninstall from Discord PTB
-bdcli uninstall canary   # Uninstall from Discord Canary
+bdcli uninstall --channel stable   # Uninstall from Discord Stable
+bdcli uninstall --channel ptb      # Uninstall from Discord PTB
+bdcli uninstall --channel canary   # Uninstall from Discord Canary
+```
+
+Uninstall BetterDiscord by providing a Discord install path:
+
+```bash
+bdcli uninstall --path /path/to/Discord
 ```
 
 ### Check Version
@@ -61,11 +85,41 @@ bdcli uninstall canary   # Uninstall from Discord Canary
 bdcli version
 ```
 
+### Shell Completions
+
+```bash
+bdcli completion bash
+bdcli completion zsh
+bdcli completion fish
+```
+
 ### Help
 
 ```bash
 bdcli --help
-bdcli <command> --help
+bdcli [command] --help
+```
+
+### CLI Help Output
+
+```
+A cross-platform CLI for installing, updating, and managing BetterDiscord.
+
+Usage:
+   bdcli [flags]
+   bdcli [command]
+
+Available Commands:
+   completion  Generate shell completions
+   help        Help about any command
+   install     Installs BetterDiscord to your Discord
+   uninstall   Uninstalls BetterDiscord from your Discord
+   version     Print the version number
+
+Flags:
+   -h, --help   help for bdcli
+
+Use "bdcli [command] --help" for more information about a command.
 ```
 
 ## Supported Platforms
@@ -78,7 +132,7 @@ bdcli <command> --help
 
 ### Prerequisites
 
-- [Go](https://go.dev/) 1.19 or higher
+- [Go](https://go.dev/) 1.26 or higher
 - [Task](https://taskfile.dev/) (optional, for task automation)
 - [GoReleaser](https://goreleaser.com/) (for releases)
 
@@ -94,32 +148,34 @@ task setup  # Or: go mod download
 
 ### Available Tasks
 
-Run `task --list` to see all available tasks:
+Run `task --list-all` to see all available tasks:
 
 ```bash
 # Development
-task run              # Run the CLI
-task run:install      # Test install command
-task run:uninstall    # Test uninstall command
+task run             # Run the CLI (pass args with: task run -- install stable)
 
 # Building
-task build            # Build for current platform
-task build:all        # Build for all platforms
-task install          # Install to $GOPATH/bin
+task build           # Build for current platform
+task build:all       # Build for all platforms (GoReleaser)
 
 # Testing
-task test             # Run tests
-task test:coverage    # Run tests with coverage
+task test            # Run tests
+task test:verbose    # Run tests with verbose output
+task coverage        # Run tests with coverage summary
+task coverage:html   # Generate HTML coverage report
 
 # Code Quality
-task lint             # Run linter
-task fmt              # Format code
-task vet              # Run go vet
-task check            # Run all checks
+task fmt             # Format Go files
+task vet             # Run go vet
+task lint            # Run golangci-lint
+task check           # Run fix, fmt, vet, lint, test
 
 # Release
 task release:snapshot # Test release build
 task release          # Create release (requires tag)
+
+# Cleaning
+task clean           # Remove build and debug artifacts
 ```
 
 ### Running Locally
@@ -151,7 +207,7 @@ task build:all
 task test
 
 # Run with coverage
-task test:coverage
+task coverage
 ```
 
 ### Releasing

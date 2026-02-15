@@ -1,6 +1,7 @@
 package betterdiscord
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/betterdiscord/cli/internal/models"
@@ -34,12 +35,17 @@ func (i *BDInstall) download() error {
 		return err
 	}
 
-	var index = 0
-	for i, asset := range apiData.Assets {
+	var index = -1
+	for idx, asset := range apiData.Assets {
 		if asset.Name == "betterdiscord.asar" {
-			index = i
+			index = idx
 			break
 		}
+	}
+
+	if index == -1 {
+		log.Printf("❌ Failed to find the BetterDiscord asar on GitHub")
+		return fmt.Errorf("failed to find betterdiscord.asar asset in GitHub release")
 	}
 
 	var downloadUrl = apiData.Assets[index].URL

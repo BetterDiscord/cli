@@ -41,7 +41,10 @@ func Validate(proposed string) *DiscordInstall {
 			return nil
 		}
 
-		var candidates = utils.Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && len(strings.Split(file.Name(), ".")) == 3 })
+		var candidates = utils.Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && versionRegex.MatchString(file.Name()) })
+		if len(candidates) == 0 {
+            return nil
+        }
 		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
 		var versionDir = candidates[len(candidates)-1].Name()
 
@@ -53,6 +56,9 @@ func Validate(proposed string) *DiscordInstall {
 		candidates = utils.Filter(dFiles, func(file fs.DirEntry) bool {
 			return file.IsDir() && strings.HasPrefix(file.Name(), "discord_desktop_core")
 		})
+		if len(candidates) == 0 {
+            return nil
+        }
 		var coreWrap = candidates[len(candidates)-1].Name()
 
 		finalPath = filepath.Join(proposed, versionDir, "modules", coreWrap, "discord_desktop_core")
@@ -68,6 +74,9 @@ func Validate(proposed string) *DiscordInstall {
 		var candidates = utils.Filter(dFiles, func(file fs.DirEntry) bool {
 			return file.IsDir() && strings.HasPrefix(file.Name(), "discord_desktop_core")
 		})
+		if len(candidates) == 0 {
+            return nil
+        }
 		var coreWrap = candidates[len(candidates)-1].Name()
 		finalPath = filepath.Join(proposed, "modules", coreWrap, "discord_desktop_core")
 	}

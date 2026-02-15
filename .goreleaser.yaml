@@ -9,6 +9,7 @@ before:
   hooks:
     - go mod tidy
     - go mod download
+    - sh ./scripts/completions.sh
 
 builds:
   - id: bdcli
@@ -39,15 +40,23 @@ builds:
     # brute: true
 
 archives:
-  - id: default
-    formats: ["tar.gz"]
+  - formats: ["tar.gz"]
     # name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
     format_overrides:
       - goos: windows
         formats: ["zip"]
+    builds_info:
+      mtime: "{{ .CommitDate }}"
     files:
-      - LICENSE
-      - README.md
+      - src: README.md
+        info:
+          mtime: "{{ .CommitDate }}"
+      - src: LICENSE
+        info:
+          mtime: "{{ .CommitDate }}"
+      - src: completions/*
+        info:
+          mtime: "{{ .CommitDate }}"
 
 checksum:
   name_template: "bdcli_checksums.txt"
@@ -97,11 +106,15 @@ release:
 
 
 homebrew_casks:
-  - name: bdcli
+  - name: cli
     description: "A cross-platform CLI for managing BetterDiscord."
     homepage: "https://betterdiscord.app/"
     license: "Apache-2.0"
     binaries: [bdcli]
+    completions:
+      bash: "completions/bdcli.bash"
+      zsh: "completions/bdcli.zsh"
+      fish: "completions/bdcli.fish"
     commit_author:
       name: zerebos
       email: 6865942+zerebos@users.noreply.github.com
