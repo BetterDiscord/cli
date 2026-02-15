@@ -174,7 +174,7 @@ tasks:
       - task: fix
       - task: fmt
       - task: vet
-      - task: test:coverage
+      - task: coverage
       - task: build
 
   # Dependency management
