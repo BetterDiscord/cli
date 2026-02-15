@@ -23,7 +23,7 @@ func TestDownloadFile(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(testData)
+		w.Write(testData) //nolint:errcheck
 	}))
 	defer server.Close()
 
@@ -86,7 +86,7 @@ func TestDownloadFile_InvalidURL(t *testing.T) {
 func TestDownloadFile_InvalidPath(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test"))
+		w.Write([]byte("test")) //nolint:errcheck
 	}))
 	defer server.Close()
 
@@ -119,7 +119,7 @@ func TestDownloadJSON(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(expectedData)
+		json.NewEncoder(w).Encode(expectedData) //nolint:errcheck
 	}))
 	defer server.Close()
 
@@ -161,7 +161,7 @@ func TestDownloadJSON_InvalidJSON(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("invalid json {"))
+		w.Write([]byte("invalid json {")) //nolint:errcheck
 	}))
 	defer server.Close()
 
@@ -178,9 +178,9 @@ func TestDownloadJSON_ComplexStruct(t *testing.T) {
 	}
 
 	type ComplexData struct {
-		Items     []NestedData  `json:"items"`
-		Timestamp time.Time     `json:"timestamp"`
-		Active    bool          `json:"active"`
+		Items     []NestedData `json:"items"`
+		Timestamp time.Time    `json:"timestamp"`
+		Active    bool         `json:"active"`
 	}
 
 	now := time.Now().UTC().Round(time.Second)
@@ -196,7 +196,7 @@ func TestDownloadJSON_ComplexStruct(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(expectedData)
+		json.NewEncoder(w).Encode(expectedData) //nolint:errcheck
 	}))
 	defer server.Close()
 

@@ -103,9 +103,9 @@ func TestBDInstall_Prepare_AlreadyExists(t *testing.T) {
 	install := New(bdRoot)
 
 	// Create directories manually first
-	os.MkdirAll(install.Data(), 0755)
-	os.MkdirAll(install.Plugins(), 0755)
-	os.MkdirAll(install.Themes(), 0755)
+	os.MkdirAll(install.Data(), 0755)    //nolint:errcheck
+	os.MkdirAll(install.Plugins(), 0755) //nolint:errcheck
+	os.MkdirAll(install.Themes(), 0755)  //nolint:errcheck
 
 	// Prepare should succeed even if directories already exist
 	err := install.Prepare()
@@ -136,7 +136,7 @@ func TestBDInstall_Repair(t *testing.T) {
 
 	// Create the data directory and a test plugins.json file
 	channelFolder := filepath.Join(install.Data(), models.Stable.String())
-	os.MkdirAll(channelFolder, 0755)
+	os.MkdirAll(channelFolder, 0755) //nolint:errcheck
 
 	pluginsJson := filepath.Join(channelFolder, "plugins.json")
 	err := os.WriteFile(pluginsJson, []byte(`{"test": "data"}`), 0644)
@@ -188,10 +188,10 @@ func TestBDInstall_Repair_MultipleChannels(t *testing.T) {
 
 	for _, channel := range channels {
 		channelFolder := filepath.Join(install.Data(), channel.String())
-		os.MkdirAll(channelFolder, 0755)
+		os.MkdirAll(channelFolder, 0755) //nolint:errcheck
 
 		pluginsJson := filepath.Join(channelFolder, "plugins.json")
-		os.WriteFile(pluginsJson, []byte(`{}`), 0644)
+		os.WriteFile(pluginsJson, []byte(`{}`), 0644) //nolint:errcheck
 		pluginsFiles[channel] = pluginsJson
 	}
 

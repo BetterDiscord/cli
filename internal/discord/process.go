@@ -24,18 +24,18 @@ func (discord *DiscordInstall) restart() error {
 	}
 
 	// Determine command based on installation type
-    var cmd *exec.Cmd
+	var cmd *exec.Cmd
 	if discord.IsFlatpak {
 		cmd = exec.Command("flatpak", "run", "com.discordapp."+discord.Channel.Exe())
 	} else if discord.IsSnap {
 		cmd = exec.Command("snap", "run", discord.Channel.Exe())
 	} else {
-        // Use binary found in killing process for non-Flatpak/Snap installs
-        if exeName == "" {
-            log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
-            return fmt.Errorf("could not determine executable path for %s", discord.Channel.Name())
-        }
-        cmd = exec.Command(exeName)
+		// Use binary found in killing process for non-Flatpak/Snap installs
+		if exeName == "" {
+			log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
+			return fmt.Errorf("could not determine executable path for %s", discord.Channel.Name())
+		}
+		cmd = exec.Command(exeName)
 	}
 
 	// Set working directory to user home

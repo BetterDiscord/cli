@@ -71,7 +71,7 @@ func Validate(proposed string) *DiscordInstall {
 
 		var candidates = utils.Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && versionRegex.MatchString(file.Name()) })
 		if len(candidates) == 0 {
-            return nil
+			return nil
 		}
 		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
 		var versionDir = candidates[len(candidates)-1].Name()
