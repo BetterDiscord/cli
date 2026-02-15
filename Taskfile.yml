@@ -171,7 +171,9 @@ tasks:
     desc: Run CI checks (used in CI/CD pipelines)
     cmds:
       - task: deps
-      - task: check
+      - task: fix
+      - task: fmt
+      - task: vet
       - task: test:coverage
       - task: build
 
