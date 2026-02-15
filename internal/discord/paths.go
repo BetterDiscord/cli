@@ -28,7 +28,7 @@ func GetAllInstalls() map[models.DiscordChannel][]*DiscordInstall {
 }
 
 func GetVersion(proposed string) string {
-	for _, folder := range strings.Split(proposed, string(filepath.Separator)) {
+	for folder := range strings.SplitSeq(proposed, string(filepath.Separator)) {
 		if version := versionRegex.FindString(folder); version != "" {
 			return version
 		}
@@ -37,7 +37,7 @@ func GetVersion(proposed string) string {
 }
 
 func GetChannel(proposed string) models.DiscordChannel {
-	for _, folder := range strings.Split(proposed, string(filepath.Separator)) {
+	for folder := range strings.SplitSeq(proposed, string(filepath.Separator)) {
 		for _, channel := range models.Channels {
 			if strings.ToLower(folder) == strings.ReplaceAll(strings.ToLower(channel.Name()), " ", "") {
 				return channel

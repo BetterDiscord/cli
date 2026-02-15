@@ -200,8 +200,8 @@ tasks:
   tools:
     desc: Install development tools
     cmds:
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-      - go install github.com/goreleaser/goreleaser/v2@latest
+      - brew install golangci-lint
+      - brew install goreleaser
 
   check:
     desc: Run all checks (fix, fmt, vet, lint, test)

@@ -20,7 +20,11 @@ func DownloadFile(url string, filepath string) (response *http.Response, err err
 	if err != nil {
 		return nil, err
 	}
-	defer out.Close()
+	defer func() {
+		if cerr := out.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// Setup the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -35,7 +39,11 @@ func DownloadFile(url string, filepath string) (response *http.Response, err err
 	if err != nil {
 		return resp, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
@@ -66,11 +74,15 @@ func DownloadJSON[T any](url string) (T, error) {
 	if err != nil {
 		return data, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return data, fmt.Errorf("Bad status: %s", resp.Status)
+		return data, fmt.Errorf("bad status: %s", resp.Status)
 	}
 
 	decoder := json.NewDecoder(resp.Body)
