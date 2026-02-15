@@ -1,7 +1,20 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# GoReleaser v2 configuration
+version: 2
+
+project_name: bdcli
+
+# Before hook - runs before the build
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+    - sh ./scripts/completions.sh
 
 builds:
-  - binary: bdcli
+  - id: bdcli
+    binary: bdcli
+    main: ./main.go
     env:
       - CGO_ENABLED=0
     goos:
@@ -11,39 +24,164 @@ builds:
     goarch:
       - amd64
       - arm64
-      - arm
-      - '386'
-    ignore:
-      - goos: darwin
-        goarch: '386'
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.CommitTimestamp}}
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+# Our binaries are small, so we can skip UPX compression
+# to save time and avoid potential issues with antivirus software.
+# upx:
+  # - enabled: true
+    # compress: best
+    # lzma: true
+    # brute: true
 
 archives:
-  - format: tar.gz
-    name_template: "{{.Binary}}_{{.Os}}_{{.Arch}}"
+  - formats: ["tar.gz"]
+    # name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
     format_overrides:
-    - goos: windows
-      format: zip
+      - goos: windows
+        formats: ["zip"]
+    builds_info:
+      mtime: "{{ .CommitDate }}"
+    files:
+      - src: README.md
+        info:
+          mtime: "{{ .CommitDate }}"
+      - src: LICENSE
+        info:
+          mtime: "{{ .CommitDate }}"
+      - src: completions/*
+        info:
+          mtime: "{{ .CommitDate }}"
+
 checksum:
-  name_template: 'bdcli_checksums.txt'
+  name_template: "bdcli_checksums.txt"
+
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
+
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: 'Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: 'Others'
+      order: 999
+
+
 release:
   draft: true
-chocolateys:
-  - name: betterdiscordcli
-    owners: BetterDiscord
-    title: BetterDiscord CLI
-    authors: BetterDiscord
-    project_url: https://betterdiscord.app/
+  replace_existing_draft: true
+  target_commitish: '{{ .Commit }}'
+  prerelease: auto
+  mode: replace
+  header: |
+    ## BetterDiscord CLI {{ .Tag }}
+
+    Install on Windows with winget: `winget install betterdiscord.cli`
+    Install on Mac/Linux with brew: `brew install betterdiscord/tap/bdcli`
+  footer: |
+    **Full Changelog**: https://github.com/BetterDiscord/cli/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
+
+
+homebrew_casks:
+  - name: cli
+    description: "A cross-platform CLI for managing BetterDiscord."
+    homepage: "https://betterdiscord.app/"
+    license: "Apache-2.0"
+    binaries: [bdcli]
+    completions:
+      bash: "completions/bdcli.bash"
+      zsh: "completions/bdcli.zsh"
+      fish: "completions/bdcli.fish"
+    commit_author:
+      name: zerebos
+      email: 6865942+zerebos@users.noreply.github.com
+    repository:
+      owner: BetterDiscord
+      name: homebrew-tap
+      branch: bdcli-{{ .Tag }}-{{ .Now.Format "20060102150405"}}
+      token: "{{ .Env.GH_PAT }}"
+
+
+winget:
+  - name: BetterDiscord CLI
+    package_identifier: betterdiscord.cli
+    author: BetterDiscord
+    release_notes: "{{ .Changelog }}"
+    release_notes_url: https://github.com/BetterDiscord/cli/releases/tag/{{ .Tag }}
+    publisher: "BetterDiscord"
+    publisher_url: "https://github.com/BetterDiscord"
+    publisher_support_url: "https://github.com/BetterDiscord/cli/issues"
+    license: "Apache-2.0"
+    license_url: "https://github.com/BetterDiscord/cli/blob/main/LICENSE"
+
+    short_description: "A cross-platform CLI for managing BetterDiscord."
+    homepage: "https://betterdiscord.app/"
+    tags: [cli, discord, utility, betterdiscord]
+
     url_template: "https://github.com/BetterDiscord/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    icon_url: https://betterdiscord.app/resources/branding/logo_solid.png
-    copyright: 2023 BetterDiscord Limited
-    license_url: https://github.com/BetterDiscord/cli/blob/main/LICENSE
-    project_source_url: https://github.com/BetterDiscord/cli
-    docs_url: https://github.com/BetterDiscord/cli/wiki
-    bug_tracker_url: https://github.com/BetterDiscord/cli/issues
-    tags: "betterdiscord cli"
-    summary: A cross-platform CLI for managing BetterDiscord
-    description: A cross-platform CLI for managing BetterDiscord
-    release_notes: "https://github.com/BetterDiscord/cli/releases/tag/v{{ .Version }}"
-    skip_publish: true
+    commit_author:
+      name: zerebos
+      email: 6865942+zerebos@users.noreply.github.com
+    repository:
+      owner: betterdiscord
+      name: winget-pkgs
+      branch: bdcli-{{ .Tag }}-{{ .Now.Format "20060102150405"}}
+      token: "{{ .Env.GH_PAT }}"
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
+        draft: false
+
+# Can't do this on linux or macOS, so we'll just skip it for now.
+# We can always add it back later if we want to support it.
+# chocolateys:
+#   - name: betterdiscordcli
+#     owners: BetterDiscord
+#     title: BetterDiscord CLI
+#     authors: BetterDiscord
+#     project_url: https://betterdiscord.app/
+#     url_template: "https://github.com/BetterDiscord/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+#     icon_url: https://betterdiscord.app/resources/branding/logo_solid.png
+#     copyright: 2025 BetterDiscord Limited
+#     license_url: https://github.com/BetterDiscord/cli/blob/main/LICENSE
+#     project_source_url: https://github.com/BetterDiscord/cli
+#     docs_url: https://docs.betterdiscord.app/
+#     bug_tracker_url: https://github.com/BetterDiscord/cli/issues
+#     tags: "betterdiscord cli discord"
+#     summary: A cross-platform CLI for managing BetterDiscord
+#     description: |
+#       A cross-platform CLI for managing BetterDiscord.
+#       Provides commands to install, uninstall, and manage BetterDiscord on your system.
+#     release_notes: "https://github.com/BetterDiscord/cli/releases/tag/v{{ .Version }}"
+
+
+
+git:
+  ignore_tags:
+    - 'nightly'

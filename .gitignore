@@ -1,2 +1,10 @@
 node_modules/
 dist/
+.task/
+notes/
+debug/
+completions/
+
+# Test coverage
+coverage.out
+coverage.html

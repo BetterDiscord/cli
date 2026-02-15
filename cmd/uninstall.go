@@ -2,63 +2,55 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"path"
 
+	"github.com/betterdiscord/cli/internal/discord"
+	"github.com/betterdiscord/cli/internal/models"
 	"github.com/spf13/cobra"
-
-	utils "github.com/betterdiscord/cli/utils"
 )
 
 func init() {
-    rootCmd.AddCommand(uninstallCmd)
+	uninstallCmd.Flags().StringP("path", "p", "", "Path to a Discord installation")
+	uninstallCmd.Flags().StringP("channel", "c", "stable", "Discord release channel (stable|ptb|canary)")
+	rootCmd.AddCommand(uninstallCmd)
 }
 
 var uninstallCmd = &cobra.Command{
-    Use:       "uninstall <channel>",
-    Short:     "Uninstalls BetterDiscord from your Discord",
-    Long:      "This can uninstall BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
-    ValidArgs: []string{"canary", "stable", "ptb"},
-    Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-    Run: func(cmd *cobra.Command, args []string) {
-        var releaseChannel = args[0]
-        var corePath = utils.DiscordPath(releaseChannel)
-        var indString = "module.exports = require(\"./core.asar\");"
+	Use:   "uninstall",
+	Short: "Uninstalls BetterDiscord from your Discord",
+	Long:  "Uninstall BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pathFlag, _ := cmd.Flags().GetString("path")
+		channelFlag, _ := cmd.Flags().GetString("channel")
 
-        if err := os.WriteFile(path.Join(corePath, "index.js"), []byte(indString), 0755); err != nil {
-            fmt.Println("Could not write index.js in discord_desktop_core!")
-            return
-        }
+		pathProvided := pathFlag != ""
+		channelProvided := cmd.Flags().Changed("channel")
 
-        var targetExe = ""
-        switch releaseChannel {
-        case "stable":
-            targetExe = "Discord.exe"
-            break
-        case "canary":
-            targetExe = "DiscordCanary.exe"
-            break
-        case "ptb":
-            targetExe = "DiscordPTB.exe"
-            break
-        default:
-            targetExe = ""
-        }
+		if pathProvided && channelProvided {
+			return fmt.Errorf("--path and --channel are mutually exclusive")
+		}
 
-        // Kill Discord if it's running
-        var exe = utils.GetProcessExe(targetExe)
-        if len(exe) > 0 {
-            if err := utils.KillProcess(targetExe); err != nil {
-                fmt.Println("Could not kill Discord")
-                return
-            }
-        }
+		var install *discord.DiscordInstall
 
-        // Launch Discord if we killed it
-        if len(exe) > 0 {
-            var cmd = exec.Command(exe)
-            cmd.Start()
-        }
-    },
+		if pathProvided {
+			install = discord.ResolvePath(pathFlag)
+			if install == nil {
+				return fmt.Errorf("could not find a valid Discord installation at %s", pathFlag)
+			}
+		} else {
+			channel := models.ParseChannel(channelFlag)
+			resolvedPath := discord.GetSuggestedPath(channel)
+			install = discord.ResolvePath(resolvedPath)
+			if install == nil {
+				return fmt.Errorf("could not find a valid %s installation to uninstall", channelFlag)
+			}
+		}
+
+		if err := install.UninstallBD(); err != nil {
+			return fmt.Errorf("uninstallation failed: %w", err)
+		}
+
+		fmt.Printf("✅ BetterDiscord uninstalled from %s\n", path.Dir(install.CorePath))
+		return nil
+	},
 }

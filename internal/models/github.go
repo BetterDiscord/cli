@@ -1,10 +1,10 @@
-package utils
+package models
 
 import (
 	"time"
 )
 
-type Release struct {
+type GitHubRelease struct {
 	URL       string `json:"url"`
 	AssetsURL string `json:"assets_url"`
 	UploadURL string `json:"upload_url"`
@@ -39,11 +39,11 @@ type Release struct {
 	CreatedAt       time.Time `json:"created_at"`
 	PublishedAt     time.Time `json:"published_at"`
 	Assets          []struct {
-		URL      string      `json:"url"`
-		ID       int         `json:"id"`
-		NodeID   string      `json:"node_id"`
-		Name     string      `json:"name"`
-		Label    interface{} `json:"label"`
+		URL      string `json:"url"`
+		ID       int    `json:"id"`
+		NodeID   string `json:"node_id"`
+		Name     string `json:"name"`
+		Label    any    `json:"label"`
 		Uploader struct {
 			Login             string `json:"login"`
 			ID                int    `json:"id"`

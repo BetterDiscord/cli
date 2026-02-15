@@ -2,110 +2,56 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"path"
-	"strings"
 
 	"github.com/spf13/cobra"
 
-	utils "github.com/betterdiscord/cli/utils"
+	"github.com/betterdiscord/cli/internal/discord"
+	"github.com/betterdiscord/cli/internal/models"
 )
 
 func init() {
+	installCmd.Flags().StringP("path", "p", "", "Path to a Discord installation")
+	installCmd.Flags().StringP("channel", "c", "stable", "Discord release channel (stable|ptb|canary)")
 	rootCmd.AddCommand(installCmd)
 }
 
 var installCmd = &cobra.Command{
-	Use:       "install <channel>",
-	Short:     "Installs BetterDiscord to your Discord",
-	Long:      "This can install BetterDiscord to multiple versions and paths of Discord at once. Options for channel are: stable, canary, ptb",
-	ValidArgs: []string{"canary", "stable", "ptb"},
-	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-	Run: func(cmd *cobra.Command, args []string) {
-		var releaseChannel = args[0]
-		var targetExe = ""
-		switch releaseChannel {
-		case "stable":
-			targetExe = "Discord.exe"
-			break
-		case "canary":
-			targetExe = "DiscordCanary.exe"
-			break
-		case "ptb":
-			targetExe = "DiscordPTB.exe"
-			break
-		default:
-			targetExe = ""
+	Use:   "install",
+	Short: "Installs BetterDiscord to your Discord",
+	Long:  "Install BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		pathFlag, _ := cmd.Flags().GetString("path")
+		channelFlag, _ := cmd.Flags().GetString("channel")
+
+		pathProvided := pathFlag != ""
+		channelProvided := cmd.Flags().Changed("channel")
+
+		if pathProvided && channelProvided {
+			return fmt.Errorf("--path and --channel are mutually exclusive")
 		}
 
-		// Kill Discord if it's running
-		var exe = utils.GetProcessExe(targetExe)
-		if len(exe) > 0 {
-			if err := utils.KillProcess(targetExe); err != nil {
-				fmt.Println("Could not kill Discord")
-				return
+		var install *discord.DiscordInstall
+
+		if pathProvided {
+			install = discord.ResolvePath(pathFlag)
+			if install == nil {
+				return fmt.Errorf("could not find a valid Discord installation at %s", pathFlag)
+			}
+		} else {
+			channel := models.ParseChannel(channelFlag)
+			corePath := discord.GetSuggestedPath(channel)
+			install = discord.ResolvePath(corePath)
+			if install == nil {
+				return fmt.Errorf("could not find a valid %s installation to install to", channelFlag)
 			}
 		}
 
-		// Make BD directories
-		if err := os.MkdirAll(utils.Data, 0755); err != nil {
-			fmt.Println("Could not create BetterDiscord folder")
-			return
+		if err := install.InstallBD(); err != nil {
+			return fmt.Errorf("installation failed: %w", err)
 		}
 
-		if err := os.MkdirAll(utils.Plugins, 0755); err != nil {
-			fmt.Println("Could not create plugins folder")
-			return
-		}
-
-		if err := os.MkdirAll(utils.Themes, 0755); err != nil {
-			fmt.Println("Could not create theme folder")
-			return
-		}
-
-		// Get download URL from GitHub API
-		var apiData, err = utils.DownloadJSON[utils.Release]("https://api.github.com/repos/BetterDiscord/BetterDiscord/releases/latest")
-		if err != nil {
-			fmt.Println("Could not get API response")
-			fmt.Println(err)
-			return
-		}
-
-		var index = 0
-		for i, asset := range apiData.Assets {
-			if asset.Name == "betterdiscord.asar" {
-				index = i
-				break
-			}
-		}
-
-		var downloadUrl = apiData.Assets[index].URL
-
-		// Download asar into the BD folder
-		var asarPath = path.Join(utils.Data, "betterdiscord.asar")
-		err = utils.DownloadFile(downloadUrl, asarPath)
-		if err != nil {
-			fmt.Println("Could not download asar")
-			return
-		}
-
-		// Inject shim loader
-		var corePath = utils.DiscordPath(releaseChannel)
-
-		var indString = `require("` + asarPath + `");`
-		indString = strings.ReplaceAll(indString, `\`, "/")
-		indString = indString + "\nmodule.exports = require(\"./core.asar\");"
-
-		if err := os.WriteFile(path.Join(corePath, "index.js"), []byte(indString), 0755); err != nil {
-			fmt.Println("Could not write index.js in discord_desktop_core!")
-			return
-		}
-
-		// Launch Discord if we killed it
-		if len(exe) > 0 {
-			var cmd = exec.Command(exe)
-			cmd.Start()
-		}
+		fmt.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
+		return nil
 	},
 }

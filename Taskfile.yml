@@ -1,0 +1,245 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  BINARY_NAME: bdcli
+  MAIN_PACKAGE: ./main.go
+  BUILD_DIR: ./dist
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0-dev"
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo "none"
+  BUILD_DATE:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
+
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list-all
+    silent: true
+
+  # Development tasks
+  run:
+    desc: Run the CLI application
+    vars:
+      LDFLAGS: '-X main.version={{.VERSION}}-dev -X main.commit={{.COMMIT}} -X main.date={{.BUILD_DATE}}'
+    cmds:
+      - go run {{.MAIN_PACKAGE}} {{.CLI_ARGS}}
+
+  # Build tasks
+  build:
+    desc: Build the binary for current platform
+    vars:
+      LDFLAGS: '-X main.version={{.VERSION}}-dev -X main.commit={{.COMMIT}} -X main.date={{.BUILD_DATE}}'
+    cmds:
+      - go build -ldflags "{{.LDFLAGS}}" -o {{.BUILD_DIR}}/{{.BINARY_NAME}}{{if eq OS "windows"}}.exe{{end}} {{.MAIN_PACKAGE}}
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+    generates:
+      - '{{.BUILD_DIR}}/{{.BINARY_NAME}}{{if eq OS "windows"}}.exe{{end}}'
+
+  build:all:
+    desc: Build binaries for all platforms using GoReleaser
+    cmds:
+      - goreleaser build --snapshot --clean --skip=publish
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+      - .goreleaser.yaml
+
+  # Testing tasks
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./...
+
+  test:verbose:
+    desc: Run all tests with verbose output
+    cmds:
+      - go test -v ./...
+
+  # Benchmarking tasks
+  bench:
+    desc: Run all benchmarks
+    cmds:
+      - go test -bench=. -benchmem ./...
+
+  bench:cpu:
+    desc: Run benchmarks with CPU profiling
+    cmds:
+      - go test -bench=. -benchmem -cpuprofile=debug/cpu.prof
+      - echo "CPU profile saved to debug/cpu.prof"
+      - "echo 'View with: go tool pprof debug/cpu.prof'"
+
+  bench:mem:
+    desc: Run benchmarks with memory profiling
+    cmds:
+      - go test -bench=. -benchmem -memprofile=debug/mem.prof
+      - echo "Memory profile saved to debug/mem.prof"
+      - "echo 'View with: go tool pprof debug/mem.prof'"
+
+  # Coverage tasks
+  coverage:
+    desc: Run tests with coverage report
+    cmds:
+      - go test -cover ./...
+
+  coverage:html:
+    desc: Generate HTML coverage report
+    cmds:
+      - go test -coverprofile=debug/coverage.out ./...
+      - go tool cover -html=debug/coverage.out -o debug/coverage.html
+      - echo "Coverage report generated at debug/coverage.html"
+
+  coverage:func:
+    desc: Show coverage by function
+    cmds:
+      - go test -coverprofile=debug/coverage.out ./...
+      - go tool cover -func=debug/coverage.out
+
+  coverage:detailed:
+    desc: Run coverage with detailed output and open HTML report
+    cmds:
+      - go test -coverprofile=debug/coverage.out -covermode=atomic ./...
+      - go tool cover -func=debug/coverage.out
+      - go tool cover -html=debug/coverage.out -o debug/coverage.html
+      - echo "Coverage report generated at debug/coverage.html"
+
+  # Code quality tasks
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run ./...
+
+  lint:fix:
+    desc: Run golangci-lint with auto-fix
+    cmds:
+      - golangci-lint run --fix ./...
+
+  fix:
+    desc: Fix and modernize all Go files
+    cmds:
+      - go fix ./...
+
+  fmt:
+    desc: Format all Go files
+    cmds:
+      - go fmt ./...
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  # Release tasks
+  release:
+    desc: Create a new release (runs GoReleaser)
+    cmds:
+      - goreleaser release --clean
+    preconditions:
+      - sh: command -v goreleaser
+        msg: 'goreleaser not installed. See: https://goreleaser.com/install/'
+      - sh: git diff-index --quiet HEAD
+        msg: 'Git working directory is not clean. Commit or stash changes first.'
+
+  release:snapshot:
+    desc: Create a snapshot release (no publish)
+    cmds:
+      - goreleaser release --snapshot --clean --skip=publish
+
+  release:test:
+    desc: Test the release process without publishing
+    cmds:
+      - goreleaser release --skip=publish --clean
+
+  release:npm:
+    desc: Publish to npm after GitHub release
+    cmds:
+      - npm publish
+    preconditions:
+      - sh: test -f package.json
+        msg: 'package.json not found'
+
+  # CI/CD tasks
+  ci:
+    desc: Run CI checks (used in CI/CD pipelines)
+    cmds:
+      - task: deps
+      - task: fix
+      - task: fmt
+      - task: vet
+      - task: coverage
+      - task: build
+
+  # Dependency management
+  deps:
+    desc: Tidy, download, and verify Go dependencies
+    cmds:
+      - go mod tidy
+      - go mod download
+      - go mod verify
+
+  deps:upgrade:
+    desc: Upgrade all Go dependencies
+    cmds:
+      - go get -u ./...
+      - go mod tidy
+      - go mod verify
+
+  # Setup and validation tasks
+  setup:
+    desc: Setup development environment
+    cmds:
+      - task: deps
+      - task: tools
+
+  tools:
+    desc: Install development tools
+    cmds:
+      - brew install golangci-lint
+      - brew install goreleaser
+
+  check:
+    desc: Run all checks (fix, fmt, vet, lint, test)
+    cmds:
+      - task: fix
+      - task: fmt
+      - task: vet
+      - task: lint
+      - task: test
+
+  validate:
+    desc: Validate goreleaser configuration
+    cmds:
+      - goreleaser check
+    preconditions:
+      - sh: command -v goreleaser
+        msg: 'goreleaser not installed. See: https://goreleaser.com/install/'
+
+  # Clean tasks
+  clean:
+    desc: Clean all generated files
+    cmds:
+      - task: clean:build
+      - task: clean:coverage
+      - task: clean:profiles
+
+  clean:build:
+    desc: Remove build directory
+    cmds:
+      - rm -rf {{.BUILD_DIR}}
+
+  clean:coverage:
+    desc: Remove coverage files
+    cmds:
+      - rm -f debug/coverage.out debug/coverage.html
+
+  clean:profiles:
+    desc: Remove profiling files
+    cmds:
+      - rm -f debug/cpu.prof debug/mem.prof
