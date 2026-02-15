@@ -14,17 +14,17 @@ var versionRegex = regexp.MustCompile(`[0-9]+\.[0-9]+\.[0-9]+`)
 var allDiscordInstalls map[models.DiscordChannel][]*DiscordInstall
 
 func GetAllInstalls() map[models.DiscordChannel][]*DiscordInstall {
-	var installs = map[models.DiscordChannel][]*DiscordInstall{}
+	allDiscordInstalls = map[models.DiscordChannel][]*DiscordInstall{}
 
 	for _, path := range searchPaths {
 		if result := Validate(path); result != nil {
-			installs[result.Channel] = append(installs[result.Channel], result)
+			allDiscordInstalls[result.Channel] = append(allDiscordInstalls[result.Channel], result)
 		}
 	}
 
 	sortInstalls()
 
-	return installs
+	return allDiscordInstalls
 }
 
 func GetVersion(proposed string) string {

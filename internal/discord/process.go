@@ -59,7 +59,7 @@ func (discord *DiscordInstall) isRunning() (bool, error) {
 		return false, fmt.Errorf("could not list processes")
 	}
 
-	// Search for desired processe(s)
+	// Search for desired process(es)
 	for _, p := range processes {
 		n, err := p.Name()
 
@@ -87,7 +87,7 @@ func (discord *DiscordInstall) kill() error {
 		return fmt.Errorf("could not list processes")
 	}
 
-	// Search for desired processe(s)
+	// Search for desired process(es)
 	for _, p := range processes {
 		n, err := p.Name()
 

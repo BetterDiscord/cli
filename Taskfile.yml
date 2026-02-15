@@ -5,7 +5,6 @@ vars:
   BINARY_NAME: bdcli
   MAIN_PACKAGE: ./main.go
   BUILD_DIR: ./dist
-  GO_VERSION: '1.26'
   VERSION:
     sh: git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0-dev"
   COMMIT:
