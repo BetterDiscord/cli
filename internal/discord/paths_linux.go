@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/betterdiscord/cli/internal/models"
-	"github.com/betterdiscord/cli/internal/utils"
+	"github.com/betterdiscord/cli/internal/wsl"
 )
 
 func init() {
@@ -31,8 +31,8 @@ func init() {
 		filepath.Join(home, "snap", "{channel-}", "current", ".config", "{channel}"),
 	}
 
-	if utils.IsWSL() {
-		winHome, err := utils.WindowsHome()
+	if wsl.IsWSL() {
+		winHome, err := wsl.WindowsHome()
 		if err == nil && winHome != "" {
 			// WSL. Data is stored under the Windows user's AppData folder.
 			// Example: `/mnt/c/Users/Username/AppData/Local/DiscordCanary`.
@@ -60,7 +60,7 @@ func init() {
 // For WSL environments, it uses Windows-style validation.
 // For native Linux, it detects Flatpak and Snap installations.
 func Validate(proposed string) *DiscordInstall {
-	if utils.IsWSL() {
+	if wsl.IsWSL() {
 		return validateWindowsStyleInstall(proposed)
 	}
 

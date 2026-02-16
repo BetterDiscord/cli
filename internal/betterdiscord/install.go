@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/betterdiscord/cli/internal/models"
-	"github.com/betterdiscord/cli/internal/utils"
+	"github.com/betterdiscord/cli/internal/wsl"
 )
 
 type BDInstall struct {
@@ -82,8 +82,8 @@ func GetInstallation(base ...string) *BDInstall {
 		configDir, _ := os.UserConfigDir()
 
 		// Handle WSL with Windows home directory
-		if utils.IsWSL() {
-			winHome, err := utils.WindowsHome()
+		if wsl.IsWSL() {
+			winHome, err := wsl.WindowsHome()
 			if err == nil && winHome != "" {
 				configDir = filepath.Join(winHome, "AppData", "Roaming")
 			}
