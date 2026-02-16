@@ -26,7 +26,7 @@ tasks:
     vars:
       LDFLAGS: '-X main.version={{.VERSION}}-dev -X main.commit={{.COMMIT}} -X main.date={{.BUILD_DATE}}'
     cmds:
-      - go run {{.MAIN_PACKAGE}} {{.CLI_ARGS}}
+      - go run -ldflags "{{.LDFLAGS}}" {{.MAIN_PACKAGE}} {{.CLI_ARGS}}
 
   # Build tasks
   build:

@@ -27,8 +27,8 @@ builds:
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
-      - -X main.commit={{.Commit}}
-      - -X main.date={{.CommitTimestamp}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.CommitDate}}
     mod_timestamp: '{{ .CommitTimestamp }}'
 
 # Our binaries are small, so we can skip UPX compression
