@@ -106,7 +106,7 @@ release:
 
 
 homebrew_casks:
-  - name: cli
+  - name: bdcli
     description: "A cross-platform CLI for managing BetterDiscord."
     homepage: "https://betterdiscord.app/"
     license: "Apache-2.0"

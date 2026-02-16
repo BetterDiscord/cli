@@ -1,10 +1,8 @@
 package discord
 
 import (
-	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/betterdiscord/cli/internal/models"
@@ -31,11 +29,16 @@ func init() {
 		// Core: `snap/discord-canary/current/.config/discordcanary/0.0.90/modules/discord_desktop_core/core.asar`.
 		// NOTE: Snap user data always exists, even when the Snap isn't mounted/running.
 		filepath.Join(home, "snap", "{channel-}", "current", ".config", "{channel}"),
+	}
 
-		// WSL. Data is stored under the Windows user's AppData folder.
-		// Example: `/mnt/c/Users/Username/AppData/Local/DiscordCanary`.
-		// Core: `/mnt/c/Users/Username/AppData/Local/DiscordCanary/app-1.0.9218/modules/discord_desktop_core-1/discord_desktop_core core.asar`.
-		filepath.Join(os.Getenv("WIN_HOME"), "AppData", "Local", "{CHANNEL}"),
+	if utils.IsWSL() {
+		winHome, err := utils.WindowsHome()
+		if err == nil && winHome != "" {
+			// WSL. Data is stored under the Windows user's AppData folder.
+			// Example: `/mnt/c/Users/Username/AppData/Local/DiscordCanary`.
+			// Core: `/mnt/c/Users/Username/AppData/Local/DiscordCanary/app-1.0.9218/modules/discord_desktop_core-1/discord_desktop_core core.asar`.
+			paths = append(paths, filepath.Join(winHome, "AppData", "Local", "{CHANNEL}"))
+		}
 	}
 
 	for _, channel := range models.Channels {
@@ -53,58 +56,14 @@ func init() {
 	allDiscordInstalls = GetAllInstalls()
 }
 
-/**
- * Currently nearly the same as darwin validation however
- * it is kept separate in case of future changes to
- * either system, it is likely that linux will require
- * more advanced validation for snap and flatpak.
- */
+// Validate validates a Discord installation path on Linux.
+// For WSL environments, it uses Windows-style validation.
+// For native Linux, it detects Flatpak and Snap installations.
 func Validate(proposed string) *DiscordInstall {
-	var finalPath = ""
-	var selected = filepath.Base(proposed)
-	if strings.HasPrefix(strings.ToLower(selected), "discord") {
-		// Get version dir like 1.0.9002
-		var dFiles, err = os.ReadDir(proposed)
-		if err != nil {
-			return nil
-		}
-
-		var candidates = utils.Filter(dFiles, func(file fs.DirEntry) bool { return file.IsDir() && versionRegex.MatchString(file.Name()) })
-		if len(candidates) == 0 {
-			return nil
-		}
-		sort.Slice(candidates, func(i, j int) bool { return candidates[i].Name() < candidates[j].Name() })
-		var versionDir = candidates[len(candidates)-1].Name()
-		finalPath = filepath.Join(proposed, versionDir, "modules", "discord_desktop_core")
-
-		// WSL installs have an extra layer
-		if (os.Getenv("WSL_DISTRO_NAME") != "" && os.Getenv("WIN_HOME") != "") && strings.Contains(proposed, "AppData") {
-			finalPath = filepath.Join(proposed, versionDir, "modules", "discord_desktop_core-1", "discord_desktop_core")
-		}
+	if utils.IsWSL() {
+		return validateWindowsStyleInstall(proposed)
 	}
 
-	if len(strings.Split(selected, ".")) == 3 {
-		finalPath = filepath.Join(proposed, "modules", "discord_desktop_core")
-	}
-
-	if selected == "modules" {
-		finalPath = filepath.Join(proposed, "discord_desktop_core")
-	}
-
-	if selected == "discord_desktop_core" {
-		finalPath = proposed
-	}
-
-	// If the path and the asar exist, all good
-	if utils.Exists(finalPath) && utils.Exists(filepath.Join(finalPath, "core.asar")) {
-		return &DiscordInstall{
-			CorePath:  finalPath,
-			Channel:   GetChannel(finalPath),
-			Version:   GetVersion(finalPath),
-			IsFlatpak: strings.Contains(finalPath, "com.discordapp."),
-			IsSnap:    strings.Contains(finalPath, "snap/"),
-		}
-	}
-
-	return nil
+	// Native Linux validation with Flatpak and Snap detection
+	return validateUnixStyleInstall(proposed, true, true)
 }
