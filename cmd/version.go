@@ -26,4 +26,3 @@ var versionCmd = &cobra.Command{
 		}
 	},
 }
-

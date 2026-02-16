@@ -1,12 +1,12 @@
 {
   "name": "@betterdiscord/cli",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "A cross-platform CLI for managing BetterDiscord",
   "main": "index.js",
+  "keywords": ["discord", "betterdiscord", "cli", "tool", "installer"],
   "publishConfig": {
     "access": "public"
   },
-  "files": [],
   "scripts": {
     "postinstall": "go-npm install",
     "preuninstall": "go-npm uninstall"
@@ -27,6 +27,6 @@
   "goBinary": {
     "name": "bdcli",
     "path": "./bin",
-    "url": "https://github.com/BetterDiscord/cli/releases/download/v{{version}}/bdcli_{{platform}}_{{arch}}{{archive_ext}}"
+    "url": "https://github.com/BetterDiscord/cli/releases/download/v{{version}}/bdcli_{{version}}_{{platform}}_{{arch}}{{archive_ext}}"
   }
 }

@@ -87,9 +87,6 @@ changelog:
 
 
 release:
-  draft: true
-  replace_existing_draft: true
-  target_commitish: '{{ .Commit }}'
   prerelease: auto
   mode: replace
   header: |
