@@ -54,6 +54,24 @@ var installCmd = &cobra.Command{
 		}
 
 		output.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
+		output.Blank()
+		output.Printf("📋 Installation Summary:\n")
+		output.Blank()
+		output.Printf("   Release Channel: %s\n", install.Channel.Display())
+		output.Printf("   Discord Version: %s\n", install.Version)
+		output.Printf("   Install Type:    %s\n", func() string {
+			if install.IsFlatpak {
+				return "flatpak"
+			} else if install.IsSnap {
+				return "snap"
+			}
+			return "native"
+		}())
+		output.Printf("   Core Path:       %s\n", path.Dir(install.CorePath))
+		output.Blank()
+
+		bdinstall := install.GetBetterDiscordInstall()
+		bdinstall.LogBuildinfo()
 		return nil
 	},
 }

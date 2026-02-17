@@ -13,7 +13,7 @@ func (discord *DiscordInstall) restart() error {
 	exeName := discord.getFullExe()
 
 	if running, _ := discord.isRunning(); !running {
-		output.Printf("✅ %s is not running.\n", discord.Channel.Name())
+		output.Printf("✅ %s is not running; skipping restart.\n", discord.Channel.Name())
 		return nil
 	}
 

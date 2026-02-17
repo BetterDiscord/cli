@@ -17,7 +17,11 @@ func (i *BDInstall) download() error {
 	resp, err := utils.DownloadFile("https://betterdiscord.app/Download/betterdiscord.asar", i.asar)
 	if err == nil {
 		version := resp.Header.Get("x-bd-version")
-		output.Printf("✅ Downloaded BetterDiscord version %s from the official website\n", output.FormatVersion(version))
+		if version == "" {
+			output.Println("✅ Downloaded BetterDiscord from the official website")
+		} else {
+			output.Printf("✅ Downloaded BetterDiscord version %s from the official website\n", output.FormatVersion(version))
+		}
 		i.hasDownloaded = true
 		return nil
 	} else {
@@ -63,7 +67,11 @@ func (i *BDInstall) download() error {
 		return err
 	}
 
-	output.Printf("✅ Downloaded BetterDiscord version %s from GitHub\n", output.FormatVersion(version))
+	if version == "" {
+		output.Println("✅ Downloaded BetterDiscord from GitHub")
+	} else {
+		output.Printf("✅ Downloaded BetterDiscord version %s from GitHub\n", output.FormatVersion(version))
+	}
 	i.hasDownloaded = true
 
 	return nil

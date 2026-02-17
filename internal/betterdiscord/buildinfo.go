@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/betterdiscord/cli/internal/utils"
 )
 
@@ -15,14 +16,23 @@ type Buildinfo struct {
 	Mode    string
 }
 
+func NewBuildinfo() Buildinfo {
+	return Buildinfo{
+		Version: "unknown",
+		Commit:  "unknown",
+		Branch:  "unknown",
+		Mode:    "unknown",
+	}
+}
+
 func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 	if !utils.Exists(i.asar) {
-		return Buildinfo{}, os.ErrNotExist
+		return NewBuildinfo(), os.ErrNotExist
 	}
 
 	f, err := os.Open(i.asar)
 	if err != nil {
-		return Buildinfo{}, err
+		return NewBuildinfo(), err
 	}
 
 	defer func() {
@@ -44,7 +54,7 @@ func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 		"mode":    modeRe,
 	}
 
-	buildinfo := Buildinfo{}
+	buildinfo := NewBuildinfo()
 	reader := bufio.NewReader(f)
 
 	// 64 KB chunks are a nice balance
@@ -94,4 +104,23 @@ func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 
 	i.Buildinfo = buildinfo
 	return buildinfo, nil
+}
+
+func (bdinstall *BDInstall) LogBuildinfo() {
+	output.Printf("📦 BetterDiscord Information:\n")
+
+	buildinfo, err := bdinstall.ReadBuildinfo()
+	if err == nil {
+		output.Printf("   Build Information:\n")
+		output.Printf("     🔹 Version: %s\n", buildinfo.Version)
+		output.Printf("     🔹 Commit:  %s\n", buildinfo.Commit)
+		output.Printf("     🔹 Branch:  %s\n", buildinfo.Branch)
+		output.Printf("     🔹 Mode:    %s\n", buildinfo.Mode)
+	}
+
+	output.Printf("   Installation Paths:\n")
+	output.Printf("     📁 Base:    %s\n", bdinstall.Root())
+	output.Printf("     ⚙️  Data:    %s\n", bdinstall.Data())
+	output.Printf("     🔌 Plugins: %s\n", bdinstall.Plugins())
+	output.Printf("     🎨 Themes:  %s\n", bdinstall.Themes())
 }

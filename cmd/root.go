@@ -59,7 +59,7 @@ var rootCmd = &cobra.Command{
 			output.SetWriters(io.Discard, nil)
 		}
 	},
-	RunE:  func(cmd *cobra.Command, args []string) error { return cmd.Help() },
+	RunE: func(cmd *cobra.Command, args []string) error { return cmd.Help() },
 }
 
 func isSilentEnvEnabled() bool {

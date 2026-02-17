@@ -18,13 +18,7 @@ type DiscordInstall struct {
 
 // InstallBD installs BetterDiscord into this Discord installation
 func (discord *DiscordInstall) InstallBD() error {
-	// Gets the global BetterDiscord install
-	bd := betterdiscord.GetInstallation()
-
-	// Snaps get their own local BD install
-	if discord.IsSnap {
-		bd = betterdiscord.GetInstallation(filepath.Clean(filepath.Join(discord.CorePath, "..", "..", "..", "..")))
-	}
+	bd := discord.GetBetterDiscordInstall()
 
 	// Make BetterDiscord folders
 	output.Println("🛠 Preparing BetterDiscord...")
@@ -96,4 +90,16 @@ func (discord *DiscordInstall) RepairBD() error {
 	}
 
 	return nil
+}
+
+func (discord *DiscordInstall) GetBetterDiscordInstall() *betterdiscord.BDInstall {
+	// Gets the global BetterDiscord install
+	bd := betterdiscord.GetInstallation()
+
+	// Snaps get their own local BD install
+	if discord.IsSnap {
+		bd = betterdiscord.GetInstallation(filepath.Clean(filepath.Join(discord.CorePath, "..", "..", "..", "..")))
+	}
+
+	return bd
 }

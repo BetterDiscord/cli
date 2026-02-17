@@ -111,11 +111,6 @@ func New(root string) *BDInstall {
 		plugins:       filepath.Join(root, "plugins"),
 		themes:        filepath.Join(root, "themes"),
 		hasDownloaded: false,
-		Buildinfo: Buildinfo{
-			Version: "unknown",
-			Commit:  "unknown",
-			Branch:  "unknown",
-			Mode:    "unknown",
-		},
+		Buildinfo:     NewBuildinfo(),
 	}
 }
