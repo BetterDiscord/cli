@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/utils"
 	"github.com/betterdiscord/cli/internal/wsl"
 )
 
@@ -16,6 +17,7 @@ type BDInstall struct {
 	plugins       string
 	themes        string
 	hasDownloaded bool
+	Buildinfo     Buildinfo
 }
 
 // Root returns the root directory path of the BetterDiscord installation
@@ -63,6 +65,10 @@ func (i *BDInstall) Repair(channel models.DiscordChannel) error {
 	return i.repair(channel)
 }
 
+func (i *BDInstall) IsAsarInstalled() bool {
+	return utils.Exists(i.asar)
+}
+
 var lock = &sync.Mutex{}
 var globalInstance *BDInstall
 
@@ -104,5 +110,12 @@ func New(root string) *BDInstall {
 		asar:    filepath.Join(root, "data", "betterdiscord.asar"),
 		plugins: filepath.Join(root, "plugins"),
 		themes:  filepath.Join(root, "themes"),
+		hasDownloaded: false,
+		Buildinfo: Buildinfo{
+			Version: "unknown",
+			Commit:  "unknown",
+			Branch:  "unknown",
+			Mode:   "unknown",
+		},
 	}
 }
