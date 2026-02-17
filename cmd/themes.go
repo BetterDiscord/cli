@@ -43,7 +43,7 @@ var themesListCmd = &cobra.Command{
 		for _, item := range items {
 			name := item.Meta.Name
 			if name == "" {
-				name = item.Filename
+				name = item.BaseName
 			}
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
 		}
@@ -64,7 +64,7 @@ var themesInfoCmd = &cobra.Command{
 
 		for _, item := range items {
 			// Match by filename or meta name
-			if item.Filename == name || item.Meta.Name == name {
+			if item.BaseName == name || item.FullFilename == name || item.Meta.Name == name {
 				betterdiscord.LogLocalAddonInfo(&item)
 				return nil
 			}

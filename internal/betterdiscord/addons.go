@@ -24,7 +24,8 @@ var pluginExtensions = []string{".plugin.js"}
 var themeExtensions = []string{".theme.css"}
 
 type AddonEntry struct {
-	Filename string    `json:"name"`
+	BaseName     string    `json:"name"`
+	FullFilename string    `json:"filename"`
 	Path     string    `json:"path"`
 	Size     int64     `json:"size"`
 	Modified time.Time `json:"modified"`
@@ -67,7 +68,8 @@ func ListAddons(kind AddonKind) ([]AddonEntry, error) {
 		}
 		outerTrim := strings.TrimSuffix(e.Name(), filepath.Ext(e.Name()))
 		out = append(out, AddonEntry{
-			Filename: strings.TrimSuffix(outerTrim, filepath.Ext(outerTrim)),
+			BaseName:     strings.TrimSuffix(outerTrim, filepath.Ext(outerTrim)),
+			FullFilename: e.Name(),
 			Path:     filepath.Join(dir, e.Name()),
 			Size:     info.Size(),
 			Modified: info.ModTime(),
@@ -242,34 +244,65 @@ func isURL(input string) bool {
 func LogLocalAddonInfo(entry *AddonEntry) {
 	name := entry.Meta.Name
 	if name == "" {
-		name = entry.Filename
+		name = entry.BaseName
 	}
 
-	log.Printf("📦 Addon: %s", name)
+	// Header with name and version
+	versionStr := ""
 	if entry.Meta.Version != "" {
-		log.Printf("   Version: %s", entry.Meta.Version)
+		versionStr = fmt.Sprintf(" v%s", entry.Meta.Version)
 	}
+	log.Printf("📦 %s%s", name, versionStr)
+
+	// Author with link if available
 	if entry.Meta.Author != "" {
-		log.Printf("   Author: %s", entry.Meta.Author)
+		authorStr := entry.Meta.Author
+		if entry.Meta.AuthorLink != "" {
+			authorStr = fmt.Sprintf("%s (%s)", authorStr, entry.Meta.AuthorLink)
+		}
+		log.Printf("   By: %s", authorStr)
 	}
+
+	// Description
 	if entry.Meta.Description != "" {
-		log.Printf("   Description: %s", entry.Meta.Description)
+		log.Printf("   %s", entry.Meta.Description)
 	}
-	log.Printf("   Size: %.1f KB", float64(entry.Size)/1024.0)
-	log.Printf("   Modified: %s", entry.Modified.Format("2006-01-02 15:04"))
+
+	// File information section
+	log.Printf("")
+	fileName := entry.FullFilename
+	if fileName == "" {
+		fileName = entry.BaseName
+	}
+	log.Printf("   📁 File: %s", fileName)
+	log.Printf("   💾 Size: %.1f KB", float64(entry.Size)/1024.0)
+	log.Printf("   🕐 Modified: %s", entry.Modified.Format("Jan 2, 2006 at 15:04"))
+
+	// Links section
+	hasLinks := false
+	if entry.Meta.Website != "" || entry.Meta.Source != "" || entry.Meta.AuthorLink != "" || entry.Meta.Donate != "" || entry.Meta.Patreon != "" || entry.Meta.Invite != "" {
+		hasLinks = true
+	}
+
+	if hasLinks {
+		log.Printf("")
+	}
+
 	if entry.Meta.Website != "" {
-		log.Printf("   Website: %s", entry.Meta.Website)
+		log.Printf("   🌐 Website: %s", entry.Meta.Website)
 	}
 	if entry.Meta.Source != "" {
-		log.Printf("   Source: %s", entry.Meta.Source)
+		log.Printf("   🔗 Source: %s", entry.Meta.Source)
 	}
 	if entry.Meta.Donate != "" {
-		log.Printf("   Donate: %s", entry.Meta.Donate)
+		log.Printf("   💜 Donate: %s", entry.Meta.Donate)
 	}
 	if entry.Meta.Patreon != "" {
-		log.Printf("   Patreon: %s", entry.Meta.Patreon)
+		log.Printf("   💰 Patreon: %s", entry.Meta.Patreon)
 	}
 	if entry.Meta.Invite != "" {
-		log.Printf("   Discord: %s", entry.Meta.Invite)
+		log.Printf("   💬 Discord: https://discord.gg/%s", entry.Meta.Invite)
 	}
+
+	log.Printf("")
 }

@@ -64,19 +64,54 @@ func GetAddonDownloadURL(id int) (s string, err error) {
 	return resp.Request.URL.String(), nil
 }
 
-// LogAddonInfo prints addon information for the user.
+// LogAddonInfo prints detailed addon information for the user.
 func LogAddonInfo(addon *models.StoreAddon) {
-	log.Printf("📦 Addon: %s", addon.Name)
-	log.Printf("   Version: %s", addon.Version)
-	log.Printf("   Author: %s", addon.Author.DisplayName)
-	log.Printf("   Description: %s", addon.Description)
-	log.Printf("   Downloads: %d | Likes: %d", addon.Downloads, addon.Likes)
+	// Header with name, version, and type
+	var typeStr string
+	if addon.Type != "" {
+		typeStr = fmt.Sprintf(" [%s]", strings.ToUpper(addon.Type))
+	}
+	log.Printf("📦 %s v%s%s", addon.Name, addon.Version, typeStr)
+
+	// Author with GitHub link
+	authorStr := addon.Author.DisplayName
+	if addon.Author.GitHubName != "" {
+		authorStr = fmt.Sprintf("%s (github.com/%s)", authorStr, addon.Author.GitHubName)
+	}
+	log.Printf("   By: %s", authorStr)
+
+	// Description
+	if addon.Description != "" {
+		log.Printf("   %s", addon.Description)
+	}
+
+	// Stats line
+	log.Printf("")
+	log.Printf("   📊 Downloads: %d  |  👍 Likes: %d", addon.Downloads, addon.Likes)
+
+	// Tags
 	if len(addon.Tags) > 0 {
-		log.Printf("   Tags: %v", addon.Tags)
+		tagsStr := strings.Join(addon.Tags, ", ")
+		log.Printf("   🏷️  Tags: %s", tagsStr)
 	}
+
+	// Release dates
+	log.Printf("")
+	if !addon.InitialReleaseDate.IsZero() {
+		log.Printf("   📅 Released: %s", addon.InitialReleaseDate.Format("Jan 2, 2006"))
+	}
+	if !addon.LatestReleaseDate.IsZero() {
+		log.Printf("   🔄 Updated: %s", addon.LatestReleaseDate.Format("Jan 2, 2006"))
+	}
+
+	// Links
 	if addon.LatestSourceURL != "" {
-		log.Printf("   Source: %s", addon.LatestSourceURL)
+		log.Printf("   🔗 Source: %s", addon.LatestSourceURL)
 	}
+	if addon.Guild != nil && addon.Guild.InviteLink != "" {
+		log.Printf("   💬 Server: %s", addon.Guild.InviteLink)
+	}
+	log.Printf("")
 }
 
 // ResolveAddonIdentifier attempts to parse identifier as int (ID) or string (name).

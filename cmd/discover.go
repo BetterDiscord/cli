@@ -96,11 +96,11 @@ var discoverAddonsCmd = &cobra.Command{
 
 		fmt.Printf("Plugins: %d installed\n", len(plugins))
 		for _, p := range plugins {
-			fmt.Printf("  - %s (%s)\n", p.Filename, p.Path)
+			fmt.Printf("  - %s (%s)\n", p.FullFilename, p.Path)
 		}
 		fmt.Printf("Themes: %d installed\n", len(themes))
 		for _, t := range themes {
-			fmt.Printf("  - %s (%s)\n", t.Filename, t.Path)
+			fmt.Printf("  - %s (%s)\n", t.FullFilename, t.Path)
 		}
 		return nil
 	},

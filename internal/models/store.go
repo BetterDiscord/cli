@@ -17,7 +17,7 @@ type StoreAddon struct {
 	LatestSourceURL    string    `json:"latest_source_url"`
 	InitialReleaseDate time.Time `json:"initial_release_date"`
 	LatestReleaseDate  time.Time `json:"latest_release_date"`
-	Guild              *Guild    `json:"guild"` // I think this one is always null
+	Guild              *Guild    `json:"guild"`
 }
 
 type Author struct {
