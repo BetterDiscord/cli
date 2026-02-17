@@ -5,7 +5,8 @@
   "main": "index.js",
   "keywords": ["discord", "betterdiscord", "cli", "tool", "installer"],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "postinstall": "go-npm install",

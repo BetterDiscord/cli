@@ -118,7 +118,8 @@ homebrew_casks:
     repository:
       owner: BetterDiscord
       name: homebrew-tap
-      branch: bdcli-{{ .Tag }}-{{ .Now.Format "20060102150405"}}
+      # Use bdcli-{{ .Tag }}-{{ .Now.Format "20060102150405"}} if we switch to using pull requests instead of pushing directly to main.
+      branch: main
       token: "{{ .Env.GH_PAT }}"
 
 
