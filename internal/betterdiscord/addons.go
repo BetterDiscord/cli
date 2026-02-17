@@ -26,10 +26,10 @@ var themeExtensions = []string{".theme.css"}
 type AddonEntry struct {
 	BaseName     string    `json:"name"`
 	FullFilename string    `json:"filename"`
-	Path     string    `json:"path"`
-	Size     int64     `json:"size"`
-	Modified time.Time `json:"modified"`
-	Meta     Meta      `json:"meta"`
+	Path         string    `json:"path"`
+	Size         int64     `json:"size"`
+	Modified     time.Time `json:"modified"`
+	Meta         Meta      `json:"meta"`
 }
 
 // ResolvedAddon holds both local and store metadata for an addon.
@@ -70,10 +70,10 @@ func ListAddons(kind AddonKind) ([]AddonEntry, error) {
 		out = append(out, AddonEntry{
 			BaseName:     strings.TrimSuffix(outerTrim, filepath.Ext(outerTrim)),
 			FullFilename: e.Name(),
-			Path:     filepath.Join(dir, e.Name()),
-			Size:     info.Size(),
-			Modified: info.ModTime(),
-			Meta:     parseJSDoc(string(contents)),
+			Path:         filepath.Join(dir, e.Name()),
+			Size:         info.Size(),
+			Modified:     info.ModTime(),
+			Meta:         parseJSDoc(string(contents)),
 		})
 	}
 	return out, nil
@@ -279,10 +279,7 @@ func LogLocalAddonInfo(entry *AddonEntry) {
 	log.Printf("   🕐 Modified: %s", entry.Modified.Format("Jan 2, 2006 at 15:04"))
 
 	// Links section
-	hasLinks := false
-	if entry.Meta.Website != "" || entry.Meta.Source != "" || entry.Meta.AuthorLink != "" || entry.Meta.Donate != "" || entry.Meta.Patreon != "" || entry.Meta.Invite != "" {
-		hasLinks = true
-	}
+	hasLinks := entry.Meta.Website != "" || entry.Meta.Source != "" || entry.Meta.AuthorLink != "" || entry.Meta.Donate != "" || entry.Meta.Patreon != "" || entry.Meta.Invite != ""
 
 	if hasLinks {
 		log.Printf("")

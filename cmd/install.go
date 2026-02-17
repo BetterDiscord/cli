@@ -17,10 +17,10 @@ func init() {
 }
 
 var installCmd = &cobra.Command{
-	Use:   "install",
+	Use:     "install",
 	Aliases: []string{"reinstall"},
-	Short: "Installs BetterDiscord to your Discord",
-	Long:  "Install BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
+	Short:   "Installs BetterDiscord to your Discord",
+	Long:    "Install BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pathFlag, _ := cmd.Flags().GetString("path")
 		channelFlag, _ := cmd.Flags().GetString("channel")

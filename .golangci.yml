@@ -1,0 +1,13 @@
+version: "2"
+
+linters:
+  disable:
+    - exhaustruct # Overly strict for initialization
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprintln
+        - fmt.Fprintf
+        - fmt.Fscan
+        - fmt.Fscanf
+        - fmt.Sscanf

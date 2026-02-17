@@ -19,9 +19,8 @@ func init() {
 }
 
 var discoverCmd = &cobra.Command{
-	Use:     "discover",
-	// Aliases: []string{"info", "list"},
-	Short:   "Discover Discord installations and related data",
+	Use:   "discover",
+	Short: "Discover Discord installations and related data",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return discoverInstallsCmd.RunE(cmd, args)
 	},

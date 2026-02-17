@@ -105,17 +105,17 @@ func GetInstallation(base ...string) *BDInstall {
 
 func New(root string) *BDInstall {
 	return &BDInstall{
-		root:    root,
-		data:    filepath.Join(root, "data"),
-		asar:    filepath.Join(root, "data", "betterdiscord.asar"),
-		plugins: filepath.Join(root, "plugins"),
-		themes:  filepath.Join(root, "themes"),
+		root:          root,
+		data:          filepath.Join(root, "data"),
+		asar:          filepath.Join(root, "data", "betterdiscord.asar"),
+		plugins:       filepath.Join(root, "plugins"),
+		themes:        filepath.Join(root, "themes"),
 		hasDownloaded: false,
 		Buildinfo: Buildinfo{
 			Version: "unknown",
 			Commit:  "unknown",
 			Branch:  "unknown",
-			Mode:   "unknown",
+			Mode:    "unknown",
 		},
 	}
 }
