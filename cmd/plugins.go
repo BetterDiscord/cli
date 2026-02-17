@@ -38,9 +38,13 @@ var pluginsListCmd = &cobra.Command{
 		}
 
 		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(tw, "NAME\tSIZE (KB)\tMODIFIED")
+		fmt.Fprintln(tw, "NAME\tVERSION\tAUTHOR\tSIZE (KB)\tMODIFIED")
 		for _, item := range items {
-			fmt.Fprintf(tw, "%s\t%.1f\t%s\n", item.Filename, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
+			name := item.Meta.Name
+			if name == "" {
+				name = item.Filename
+			}
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
 		}
 		return tw.Flush()
 	},

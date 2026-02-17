@@ -25,7 +25,7 @@ func FetchAddonFromStore(identifier string) (*models.StoreAddon, error) {
 
 // GetAddonDownloadURL resolves the final download URL for an addon by ID.
 // It follows redirects from the BetterDiscord download page.
-func GetAddonDownloadURL(id int) (string, error) {
+func GetAddonDownloadURL(id int) (s string, err error) {
 	downloadURL := fmt.Sprintf("https://betterdiscord.app/gh-redirect?id=%d", id)
 
 	req, err := http.NewRequest("GET", downloadURL, nil)
@@ -49,7 +49,11 @@ func GetAddonDownloadURL(id int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("download page returned status %d", resp.StatusCode)

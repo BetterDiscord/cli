@@ -2,7 +2,6 @@ package models
 
 import "time"
 
-
 type StoreAddon struct {
 	ID                 int       `json:"id"`
 	Name               string    `json:"name"`
@@ -32,8 +31,8 @@ type Author struct {
 }
 
 type Guild struct {
-	Name string `json:"name"`
-	Snowflake string `json:"snowflake"`
+	Name       string `json:"name"`
+	Snowflake  string `json:"snowflake"`
 	InviteLink string `json:"invite_link"`
 	AvatarHash string `json:"avatar_hash"`
 }

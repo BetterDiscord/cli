@@ -23,11 +23,11 @@ var pluginExtensions = []string{".plugin.js"}
 var themeExtensions = []string{".theme.css"}
 
 type AddonEntry struct {
-	Filename     string    `json:"name"`
-	Path         string    `json:"path"`
-	Size         int64     `json:"size"`
-	Modified     time.Time `json:"modified"`
-	Meta         Meta      `json:"meta,omitempty"`
+	Filename string    `json:"name"`
+	Path     string    `json:"path"`
+	Size     int64     `json:"size"`
+	Modified time.Time `json:"modified"`
+	Meta     Meta      `json:"meta"`
 }
 
 // ResolvedAddon holds both local and store metadata for an addon.
@@ -66,7 +66,7 @@ func ListAddons(kind AddonKind) ([]AddonEntry, error) {
 		}
 		outerTrim := strings.TrimSuffix(e.Name(), filepath.Ext(e.Name()))
 		out = append(out, AddonEntry{
-			Filename:     strings.TrimSuffix(outerTrim, filepath.Ext(outerTrim)),
+			Filename: strings.TrimSuffix(outerTrim, filepath.Ext(outerTrim)),
 			Path:     filepath.Join(dir, e.Name()),
 			Size:     info.Size(),
 			Modified: info.ModTime(),
