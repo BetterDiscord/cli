@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/betterdiscord/cli/internal/models"
 	"github.com/betterdiscord/cli/internal/utils"
@@ -73,6 +74,9 @@ func LogAddonInfo(addon *models.StoreAddon) {
 	if len(addon.Tags) > 0 {
 		log.Printf("   Tags: %v", addon.Tags)
 	}
+	if addon.LatestSourceURL != "" {
+		log.Printf("   Source: %s", addon.LatestSourceURL)
+	}
 }
 
 // ResolveAddonIdentifier attempts to parse identifier as int (ID) or string (name).
@@ -82,4 +86,43 @@ func ResolveAddonIdentifier(identifier string) (int, string, bool) {
 		return id, "", true
 	}
 	return 0, identifier, false
+}
+
+// FetchAddonsOfType fetches all addons of a specific type from the store.
+// Kind can be "plugin", "theme", or "addon" for all types.
+func FetchAddonsOfType(kind string) ([]models.StoreAddon, error) {
+	endpoint := kind
+	if kind == "" {
+		endpoint = "addons"
+	}
+	apiURL := fmt.Sprintf("https://api.betterdiscord.app/v3/store/%s", endpoint)
+
+	addons, err := utils.DownloadJSON[[]models.StoreAddon](apiURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch %s from store: %w", endpoint, err)
+	}
+
+	return addons, nil
+}
+
+// SearchAddons performs a client-side search on addon slice.
+// Searches addon Name, Description, Author DisplayName, and FileName.
+func SearchAddons(addons []models.StoreAddon, query string) []models.StoreAddon {
+	if query == "" {
+		return addons
+	}
+
+	query = strings.ToLower(query)
+	var results []models.StoreAddon
+
+	for _, addon := range addons {
+		if strings.Contains(strings.ToLower(addon.Name), query) ||
+			strings.Contains(strings.ToLower(addon.Description), query) ||
+			strings.Contains(strings.ToLower(addon.Author.DisplayName), query) ||
+			strings.Contains(strings.ToLower(addon.FileName), query) {
+			results = append(results, addon)
+		}
+	}
+
+	return results
 }

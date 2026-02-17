@@ -2,6 +2,7 @@ package betterdiscord
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -235,4 +236,40 @@ func candidateFilenames(kind AddonKind, identifier string) []string {
 func isURL(input string) bool {
 	parsed, err := url.Parse(input)
 	return err == nil && parsed.Scheme != "" && parsed.Host != ""
+}
+
+// LogLocalAddonInfo prints detailed information about a locally installed addon.
+func LogLocalAddonInfo(entry *AddonEntry) {
+	name := entry.Meta.Name
+	if name == "" {
+		name = entry.Filename
+	}
+
+	log.Printf("📦 Addon: %s", name)
+	if entry.Meta.Version != "" {
+		log.Printf("   Version: %s", entry.Meta.Version)
+	}
+	if entry.Meta.Author != "" {
+		log.Printf("   Author: %s", entry.Meta.Author)
+	}
+	if entry.Meta.Description != "" {
+		log.Printf("   Description: %s", entry.Meta.Description)
+	}
+	log.Printf("   Size: %.1f KB", float64(entry.Size)/1024.0)
+	log.Printf("   Modified: %s", entry.Modified.Format("2006-01-02 15:04"))
+	if entry.Meta.Website != "" {
+		log.Printf("   Website: %s", entry.Meta.Website)
+	}
+	if entry.Meta.Source != "" {
+		log.Printf("   Source: %s", entry.Meta.Source)
+	}
+	if entry.Meta.Donate != "" {
+		log.Printf("   Donate: %s", entry.Meta.Donate)
+	}
+	if entry.Meta.Patreon != "" {
+		log.Printf("   Patreon: %s", entry.Meta.Patreon)
+	}
+	if entry.Meta.Invite != "" {
+		log.Printf("   Discord: %s", entry.Meta.Invite)
+	}
 }

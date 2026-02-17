@@ -12,6 +12,7 @@ import (
 func init() {
 	// Parent command: plugins
 	pluginsCmd.AddCommand(pluginsListCmd)
+	pluginsCmd.AddCommand(pluginsInfoCmd)
 	pluginsCmd.AddCommand(pluginsInstallCmd)
 	pluginsCmd.AddCommand(pluginsRemoveCmd)
 	pluginsCmd.AddCommand(pluginsUpdateCmd)
@@ -47,6 +48,30 @@ var pluginsListCmd = &cobra.Command{
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
 		}
 		return tw.Flush()
+	},
+}
+
+var pluginsInfoCmd = &cobra.Command{
+	Use:   "info <name>",
+	Short: "Show detailed information about an installed plugin",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
+		items, err := betterdiscord.ListAddons(betterdiscord.AddonPlugin)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range items {
+			// Match by filename or meta name
+			if item.Filename == name || item.Meta.Name == name {
+				betterdiscord.LogLocalAddonInfo(&item)
+				return nil
+			}
+		}
+
+		fmt.Printf("Plugin '%s' not found\n", name)
+		return nil
 	},
 }
 

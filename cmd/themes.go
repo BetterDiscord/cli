@@ -12,6 +12,7 @@ import (
 func init() {
 	// Parent command: themes
 	themesCmd.AddCommand(themesListCmd)
+	themesCmd.AddCommand(themesInfoCmd)
 	themesCmd.AddCommand(themesInstallCmd)
 	themesCmd.AddCommand(themesRemoveCmd)
 	themesCmd.AddCommand(themesUpdateCmd)
@@ -47,6 +48,30 @@ var themesListCmd = &cobra.Command{
 			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
 		}
 		return tw.Flush()
+	},
+}
+
+var themesInfoCmd = &cobra.Command{
+	Use:   "info <name>",
+	Short: "Show detailed information about an installed theme",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
+		items, err := betterdiscord.ListAddons(betterdiscord.AddonTheme)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range items {
+			// Match by filename or meta name
+			if item.Filename == name || item.Meta.Name == name {
+				betterdiscord.LogLocalAddonInfo(&item)
+				return nil
+			}
+		}
+
+		fmt.Printf("Theme '%s' not found\n", name)
+		return nil
 	},
 }
 
