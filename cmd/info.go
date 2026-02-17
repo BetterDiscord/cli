@@ -31,7 +31,7 @@ var infoCmd = &cobra.Command{
 		fmt.Printf("📦 BetterDiscord Information:\n\n")
 
 		fmt.Printf("   Build Information:\n")
-		fmt.Printf("     🔹 Version: %s\n", buildinfo.Version)
+		fmt.Printf("     🔹 Version: v%s\n", buildinfo.Version)
 		fmt.Printf("     🔹 Commit:  %s\n", buildinfo.Commit)
 		fmt.Printf("     🔹 Branch:  %s\n", buildinfo.Branch)
 		fmt.Printf("     🔹 Mode:    %s\n\n", buildinfo.Mode)
