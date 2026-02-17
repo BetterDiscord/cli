@@ -1,11 +1,11 @@
 package discord
 
 import (
-	"log"
 	"path/filepath"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 )
 
 type DiscordInstall struct {
@@ -27,52 +27,52 @@ func (discord *DiscordInstall) InstallBD() error {
 	}
 
 	// Make BetterDiscord folders
-	log.Printf("## Preparing BetterDiscord...")
+	output.Println("🛠 Preparing BetterDiscord...")
 	if err := bd.Prepare(); err != nil {
 		return err
 	}
-	log.Printf("✅ BetterDiscord prepared for install")
-	log.Printf("")
+	output.Println("✅ BetterDiscord prepared for install")
+	output.Blank()
 
 	// Download and write betterdiscord.asar
-	log.Printf("## Downloading BetterDiscord...")
+	output.Println("📥 Downloading BetterDiscord...")
 	if err := bd.Download(); err != nil {
 		return err
 	}
-	log.Printf("✅ BetterDiscord downloaded")
-	log.Printf("")
+	output.Println("✅ BetterDiscord downloaded")
+	output.Blank()
 
 	// Write injection script to discord_desktop_core/index.js
-	log.Printf("## Injecting into Discord...")
+	output.Println("🔌 Injecting into Discord...")
 	if err := discord.inject(bd); err != nil {
 		return err
 	}
-	log.Printf("✅ Injection successful")
-	log.Printf("")
+	output.Println("✅ Injection successful")
+	output.Blank()
 
 	// Terminate and restart Discord if possible
-	log.Printf("## Restarting %s...", discord.Channel.Name())
+	output.Printf("🔄 Restarting %s...\n", discord.Channel.Name())
 	if err := discord.restart(); err != nil {
 		return err
 	}
-	log.Printf("")
+	output.Blank()
 
 	return nil
 }
 
 // UninstallBD removes BetterDiscord from this Discord installation
 func (discord *DiscordInstall) UninstallBD() error {
-	log.Printf("## Removing injection...")
+	output.Println("🧹 Removing injection...")
 	if err := discord.uninject(); err != nil {
 		return err
 	}
-	log.Printf("")
+	output.Blank()
 
-	log.Printf("## Restarting %s...", discord.Channel.Name())
+	output.Printf("🔄 Restarting %s...\n", discord.Channel.Name())
 	if err := discord.restart(); err != nil {
 		return err
 	}
-	log.Printf("")
+	output.Blank()
 
 	return nil
 }

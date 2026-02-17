@@ -7,6 +7,7 @@ import (
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/betterdiscord/cli/internal/utils"
 )
 
@@ -35,7 +36,7 @@ var updateCmd = &cobra.Command{
 		}
 
 		currentVersion := buildinfo.Version
-		fmt.Printf("📦 Current version: v%s\n", currentVersion)
+		output.Printf("📦 Current version: %s\n", output.FormatVersion(currentVersion))
 
 		// Get latest release from GitHub
 		release, err := utils.DownloadJSON[models.GitHubRelease]("https://api.github.com/repos/BetterDiscord/BetterDiscord/releases/latest")
@@ -44,28 +45,28 @@ var updateCmd = &cobra.Command{
 		}
 
 		latestVersion := release.TagName
-		fmt.Printf("🌐 Latest version:  %s\n\n", latestVersion)
+		output.Printf("🌐 Latest version:  %s\n\n", output.FormatVersion(latestVersion))
 
 		// Check if update is needed
 		if compareVersions(currentVersion, latestVersion) >= 0 {
-			fmt.Printf("✅ You are already on the latest version!\n")
+			output.Printf("✅ You are already on the latest version!\n")
 			return nil
 		}
 
-		fmt.Printf("🎉 New version available!\n\n")
+		output.Printf("🎉 New version available!\n\n")
 
 		if checkFlag {
-			fmt.Println("Run 'bdcli update' to install the update")
+			output.Println("Run 'bdcli update' to install the update")
 			return nil
 		}
 
 		// Download the latest version
-		fmt.Println("📥 Downloading update...")
+		output.Println("📥 Downloading update...")
 		if err := bdinstall.Download(); err != nil {
 			return fmt.Errorf("failed to download update: %w", err)
 		}
 
-		fmt.Printf("✅ Successfully updated to %s\n", latestVersion)
+		output.Printf("✅ Successfully updated to %s\n", output.FormatVersion(latestVersion))
 		return nil
 	},
 }

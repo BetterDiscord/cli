@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -34,18 +33,18 @@ var pluginsListCmd = &cobra.Command{
 			return err
 		}
 		if len(items) == 0 {
-			fmt.Println("No plugins installed.")
+			output.Println("📭 No plugins installed.")
 			return nil
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "NAME\tVERSION\tAUTHOR\tSIZE (KB)\tMODIFIED")
 		for _, item := range items {
 			name := item.Meta.Name
 			if name == "" {
 				name = item.BaseName
 			}
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format(output.DateTimeFormat))
 		}
 		return tw.Flush()
 	},
@@ -70,7 +69,7 @@ var pluginsInfoCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Printf("Plugin '%s' not found\n", name)
+		output.Printf("❌ Plugin '%s' not found.\n", name)
 		return nil
 	},
 }
@@ -85,7 +84,7 @@ var pluginsInstallCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("✅ Plugin installed at %s\n", resolved.URL)
+		output.Printf("✅ Plugin installed at %s\n", resolved.URL)
 		return nil
 	},
 }
@@ -100,7 +99,7 @@ var pluginsRemoveCmd = &cobra.Command{
 		if err := betterdiscord.RemoveAddon(betterdiscord.AddonPlugin, identifier); err != nil {
 			return err
 		}
-		fmt.Printf("Removed plugin %s\n", identifier)
+		output.Printf("✅ Plugin removed: %s\n", identifier)
 		return nil
 	},
 }
@@ -115,7 +114,7 @@ var pluginsUpdateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("✅ Plugin updated at %s\n", resolved.URL)
+		output.Printf("✅ Plugin updated at %s\n", resolved.URL)
 		return nil
 	},
 }

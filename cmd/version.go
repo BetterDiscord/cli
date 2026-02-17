@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"runtime/debug"
 
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -18,11 +18,11 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Show clean output for production builds, debug info for dev builds
 		if IsDebugBuild() {
-			fmt.Println(debug.ReadBuildInfo())
+			output.Println(debug.ReadBuildInfo())
 		} else {
-			fmt.Printf("BetterDiscord CLI %s\n", GetVersion())
-			fmt.Printf("Commit: %s\n", GetCommit())
-			fmt.Printf("Built:  %s\n", GetDate())
+			output.Printf("📦 BetterDiscord CLI %s\n", GetVersion())
+			output.Printf("🔖 Commit: %s\n", GetCommit())
+			output.Printf("🕒 Built:  %s\n", GetDate())
 		}
 	},
 }

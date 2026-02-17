@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -34,18 +33,18 @@ var themesListCmd = &cobra.Command{
 			return err
 		}
 		if len(items) == 0 {
-			fmt.Println("No themes installed.")
+			output.Println("📭 No themes installed.")
 			return nil
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "NAME\tVERSION\tAUTHOR\tSIZE (KB)\tMODIFIED")
 		for _, item := range items {
 			name := item.Meta.Name
 			if name == "" {
 				name = item.BaseName
 			}
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format("2006-01-02 15:04"))
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%.1f\t%s\n", name, item.Meta.Version, item.Meta.Author, float64(item.Size)/1024.0, item.Modified.Format(output.DateTimeFormat))
 		}
 		return tw.Flush()
 	},
@@ -70,7 +69,7 @@ var themesInfoCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Printf("Theme '%s' not found\n", name)
+		output.Printf("❌ Theme '%s' not found.\n", name)
 		return nil
 	},
 }
@@ -85,7 +84,7 @@ var themesInstallCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("✅ Theme installed at %s\n", resolved.URL)
+		output.Printf("✅ Theme installed at %s\n", resolved.URL)
 		return nil
 	},
 }
@@ -100,7 +99,7 @@ var themesRemoveCmd = &cobra.Command{
 		if err := betterdiscord.RemoveAddon(betterdiscord.AddonTheme, identifier); err != nil {
 			return err
 		}
-		fmt.Printf("Removed theme %s\n", identifier)
+		output.Printf("✅ Theme removed: %s\n", identifier)
 		return nil
 	},
 }
@@ -115,7 +114,7 @@ var themesUpdateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("✅ Theme updated at %s\n", resolved.URL)
+		output.Printf("✅ Theme updated at %s\n", resolved.URL)
 		return nil
 	},
 }

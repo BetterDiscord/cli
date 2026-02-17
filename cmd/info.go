@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
+	"github.com/betterdiscord/cli/internal/output"
 )
 
 func init() {
@@ -28,19 +29,19 @@ var infoCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("📦 BetterDiscord Information:\n\n")
+		output.Printf("📦 BetterDiscord Information:\n\n")
 
-		fmt.Printf("   Build Information:\n")
-		fmt.Printf("     🔹 Version: v%s\n", buildinfo.Version)
-		fmt.Printf("     🔹 Commit:  %s\n", buildinfo.Commit)
-		fmt.Printf("     🔹 Branch:  %s\n", buildinfo.Branch)
-		fmt.Printf("     🔹 Mode:    %s\n\n", buildinfo.Mode)
+		output.Printf("   Build Information:\n")
+		output.Printf("     🔹 Version: %s\n", output.FormatVersion(buildinfo.Version))
+		output.Printf("     🔹 Commit:  %s\n", buildinfo.Commit)
+		output.Printf("     🔹 Branch:  %s\n", buildinfo.Branch)
+		output.Printf("     🔹 Mode:    %s\n\n", buildinfo.Mode)
 
-		fmt.Printf("   Installation Paths:\n")
-		fmt.Printf("     📁 Base:    %s\n", bdinstall.Root())
-		fmt.Printf("     ⚙️  Data:    %s\n", bdinstall.Data())
-		fmt.Printf("     🔌 Plugins: %s\n", bdinstall.Plugins())
-		fmt.Printf("     🎨 Themes:  %s\n", bdinstall.Themes())
+		output.Printf("   Installation Paths:\n")
+		output.Printf("     📁 Base:    %s\n", bdinstall.Root())
+		output.Printf("     ⚙️  Data:    %s\n", bdinstall.Data())
+		output.Printf("     🔌 Plugins: %s\n", bdinstall.Plugins())
+		output.Printf("     🎨 Themes:  %s\n", bdinstall.Themes())
 
 		return nil
 	},

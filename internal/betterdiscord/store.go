@@ -2,12 +2,12 @@ package betterdiscord
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/betterdiscord/cli/internal/utils"
 )
 
@@ -71,47 +71,47 @@ func LogAddonInfo(addon *models.StoreAddon) {
 	if addon.Type != "" {
 		typeStr = fmt.Sprintf(" [%s]", strings.ToUpper(addon.Type))
 	}
-	log.Printf("📦 %s v%s%s", addon.Name, addon.Version, typeStr)
+	output.Printf("📦 %s %s%s\n", addon.Name, output.FormatVersion(addon.Version), typeStr)
 
 	// Author with GitHub link
 	authorStr := addon.Author.DisplayName
 	if addon.Author.GitHubName != "" {
 		authorStr = fmt.Sprintf("%s (github.com/%s)", authorStr, addon.Author.GitHubName)
 	}
-	log.Printf("   By: %s", authorStr)
+	output.Printf("   By: %s\n", authorStr)
 
 	// Description
 	if addon.Description != "" {
-		log.Printf("   %s", addon.Description)
+		output.Printf("   %s\n", addon.Description)
 	}
 
 	// Stats line
-	log.Printf("")
-	log.Printf("   📊 Downloads: %d  |  👍 Likes: %d", addon.Downloads, addon.Likes)
+	output.Blank()
+	output.Printf("   📊 Downloads: %d  |  👍 Likes: %d\n", addon.Downloads, addon.Likes)
 
 	// Tags
 	if len(addon.Tags) > 0 {
 		tagsStr := strings.Join(addon.Tags, ", ")
-		log.Printf("   🏷️  Tags: %s", tagsStr)
+		output.Printf("   🏷️  Tags: %s\n", tagsStr)
 	}
 
 	// Release dates
-	log.Printf("")
+	output.Blank()
 	if !addon.InitialReleaseDate.IsZero() {
-		log.Printf("   📅 Released: %s", addon.InitialReleaseDate.Format("Jan 2, 2006"))
+		output.Printf("   📅 Released: %s\n", addon.InitialReleaseDate.Format(output.DateTimeFormat))
 	}
 	if !addon.LatestReleaseDate.IsZero() {
-		log.Printf("   🔄 Updated: %s", addon.LatestReleaseDate.Format("Jan 2, 2006"))
+		output.Printf("   🔄 Updated: %s\n", addon.LatestReleaseDate.Format(output.DateTimeFormat))
 	}
 
 	// Links
 	if addon.LatestSourceURL != "" {
-		log.Printf("   🔗 Source: %s", addon.LatestSourceURL)
+		output.Printf("   🔗 Source: %s\n", addon.LatestSourceURL)
 	}
 	if addon.Guild != nil && addon.Guild.InviteLink != "" {
-		log.Printf("   💬 Server: %s", addon.Guild.InviteLink)
+		output.Printf("   💬 Server: %s\n", addon.Guild.InviteLink)
 	}
-	log.Printf("")
+	output.Blank()
 }
 
 // ResolveAddonIdentifier attempts to parse identifier as int (ID) or string (name).

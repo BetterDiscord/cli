@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -51,11 +50,11 @@ var storeSearchCmd = &cobra.Command{
 
 		results := betterdiscord.SearchAddons(addons, query)
 		if len(results) == 0 {
-			fmt.Println("No addons found matching that query.")
+			output.Println("📭 No addons found matching that query.")
 			return nil
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "ID\tNAME\tTYPE\tVERSION\tAUTHOR\tDOWNLOADS")
 		for _, addon := range results {
 			fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\t%d\n", addon.ID, addon.Name, addon.Type, addon.Version, addon.Author.DisplayName, addon.Downloads)
@@ -104,11 +103,11 @@ var storePluginsSearchCmd = &cobra.Command{
 
 		results := betterdiscord.SearchAddons(addons, query)
 		if len(results) == 0 {
-			fmt.Println("No plugins found matching that query.")
+			output.Println("📭 No plugins found matching that query.")
 			return nil
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "ID\tNAME\tVERSION\tAUTHOR\tDOWNLOADS")
 		for _, addon := range results {
 			fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%d\n", addon.ID, addon.Name, addon.Version, addon.Author.DisplayName, addon.Downloads)
@@ -156,11 +155,11 @@ var storeThemesSearchCmd = &cobra.Command{
 
 		results := betterdiscord.SearchAddons(addons, query)
 		if len(results) == 0 {
-			fmt.Println("No themes found matching that query.")
+			output.Println("📭 No themes found matching that query.")
 			return nil
 		}
 
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "ID\tNAME\tVERSION\tAUTHOR\tDOWNLOADS")
 		for _, addon := range results {
 			fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%d\n", addon.ID, addon.Name, addon.Version, addon.Author.DisplayName, addon.Downloads)

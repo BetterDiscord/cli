@@ -8,6 +8,7 @@ import (
 
 	"github.com/betterdiscord/cli/internal/discord"
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 )
 
 func init() {
@@ -52,7 +53,7 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("installation failed: %w", err)
 		}
 
-		fmt.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
+		output.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
 		return nil
 	},
 }

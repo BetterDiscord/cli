@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"text/tabwriter"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
 	"github.com/betterdiscord/cli/internal/discord"
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -33,12 +32,13 @@ var discoverInstallsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		installs := discord.GetAllInstalls()
 		if len(installs) == 0 {
-			fmt.Println("No Discord installations detected.")
+			output.Println("📭 No Discord installations detected.")
 			return nil
 		}
 
 		channels := []models.DiscordChannel{models.Stable, models.PTB, models.Canary}
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		output.Printf("🔎 Discord installations:\n\n")
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "CHANNEL\tVERSION\tTYPE\tBD INJECTED\tPATH")
 
 		for _, ch := range channels {
@@ -67,7 +67,8 @@ var discoverPathsCmd = &cobra.Command{
 	Short: "Show suggested install paths per channel",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		channels := []models.DiscordChannel{models.Stable, models.PTB, models.Canary}
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+		output.Printf("🧭 Suggested install paths:\n\n")
+		tw := output.NewTableWriter()
 		fmt.Fprintln(tw, "CHANNEL\tSUGGESTED PATH")
 		for _, ch := range channels {
 			p := discord.GetSuggestedPath(ch)
@@ -93,13 +94,14 @@ var discoverAddonsCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("Plugins: %d installed\n", len(plugins))
+		output.Printf("🧩 Addons summary:\n")
+		output.Printf("   Plugins: %d installed\n", len(plugins))
 		for _, p := range plugins {
-			fmt.Printf("  - %s (%s)\n", p.FullFilename, p.Path)
+			output.Printf("     - %s (%s)\n", p.FullFilename, p.Path)
 		}
-		fmt.Printf("Themes: %d installed\n", len(themes))
+		output.Printf("   Themes: %d installed\n", len(themes))
 		for _, t := range themes {
-			fmt.Printf("  - %s (%s)\n", t.FullFilename, t.Path)
+			output.Printf("     - %s (%s)\n", t.FullFilename, t.Path)
 		}
 		return nil
 	},

@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -41,20 +44,32 @@ func IsDebugBuild() bool {
 	return buildVersion == "dev"
 }
 
-func init() {
+var silent bool
 
+func init() {
+	rootCmd.PersistentFlags().BoolVar(&silent, "silent", false, "Suppress non-error output")
 }
 
 var rootCmd = &cobra.Command{
 	Use:   "bdcli",
 	Short: "CLI for managing BetterDiscord",
 	Long:  `A cross-platform CLI for installing, updating, and managing BetterDiscord.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if silent || isSilentEnvEnabled() {
+			output.SetWriters(io.Discard, nil)
+		}
+	},
 	RunE:  func(cmd *cobra.Command, args []string) error { return cmd.Help() },
+}
+
+func isSilentEnvEnabled() bool {
+	value := strings.TrimSpace(strings.ToLower(os.Getenv("BDCLI_SILENT")))
+	return value != "" && value != "0" && value != "false" && value != "no"
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(output.ErrorWriter(), err)
 		os.Exit(1)
 	}
 }

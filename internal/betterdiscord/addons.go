@@ -2,7 +2,6 @@ package betterdiscord
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/betterdiscord/cli/internal/utils"
 )
 
@@ -252,7 +252,7 @@ func LogLocalAddonInfo(entry *AddonEntry) {
 	if entry.Meta.Version != "" {
 		versionStr = fmt.Sprintf(" v%s", entry.Meta.Version)
 	}
-	log.Printf("📦 %s%s", name, versionStr)
+	output.Printf("📦 %s%s\n", name, versionStr)
 
 	// Author with link if available
 	if entry.Meta.Author != "" {
@@ -260,46 +260,45 @@ func LogLocalAddonInfo(entry *AddonEntry) {
 		if entry.Meta.AuthorLink != "" {
 			authorStr = fmt.Sprintf("%s (%s)", authorStr, entry.Meta.AuthorLink)
 		}
-		log.Printf("   By: %s", authorStr)
+		output.Printf("   By: %s\n", authorStr)
 	}
 
 	// Description
 	if entry.Meta.Description != "" {
-		log.Printf("   %s", entry.Meta.Description)
+		output.Printf("   %s\n", entry.Meta.Description)
 	}
 
 	// File information section
-	log.Printf("")
+	output.Blank()
 	fileName := entry.FullFilename
 	if fileName == "" {
 		fileName = entry.BaseName
 	}
-	log.Printf("   📁 File: %s", fileName)
-	log.Printf("   💾 Size: %.1f KB", float64(entry.Size)/1024.0)
-	log.Printf("   🕐 Modified: %s", entry.Modified.Format("Jan 2, 2006 at 15:04"))
+	output.Printf("   📁 File: %s\n", fileName)
+	output.Printf("   💾 Size: %.1f KB\n", float64(entry.Size)/1024.0)
+	output.Printf("   🕐 Modified: %s\n", entry.Modified.Format(output.DateTimeFormat))
 
 	// Links section
 	hasLinks := entry.Meta.Website != "" || entry.Meta.Source != "" || entry.Meta.AuthorLink != "" || entry.Meta.Donate != "" || entry.Meta.Patreon != "" || entry.Meta.Invite != ""
 
 	if hasLinks {
-		log.Printf("")
+		output.Blank()
 	}
 
 	if entry.Meta.Website != "" {
-		log.Printf("   🌐 Website: %s", entry.Meta.Website)
+		output.Printf("   🌐 Website: %s\n", entry.Meta.Website)
 	}
 	if entry.Meta.Source != "" {
-		log.Printf("   🔗 Source: %s", entry.Meta.Source)
+		output.Printf("   🔗 Source: %s\n", entry.Meta.Source)
 	}
 	if entry.Meta.Donate != "" {
-		log.Printf("   💜 Donate: %s", entry.Meta.Donate)
+		output.Printf("   💜 Donate: %s\n", entry.Meta.Donate)
 	}
 	if entry.Meta.Patreon != "" {
-		log.Printf("   💰 Patreon: %s", entry.Meta.Patreon)
+		output.Printf("   💰 Patreon: %s\n", entry.Meta.Patreon)
 	}
 	if entry.Meta.Invite != "" {
-		log.Printf("   💬 Discord: https://discord.gg/%s", entry.Meta.Invite)
+		output.Printf("   💬 Discord: https://discord.gg/%s\n", entry.Meta.Invite)
 	}
-
-	log.Printf("")
+	output.Blank()
 }
