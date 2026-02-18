@@ -124,10 +124,26 @@ var themesRemoveCmd = &cobra.Command{
 var themesUpdateCmd = &cobra.Command{
 	Use:   "update <name|id|url>",
 	Short: "Update a theme by name, ID, or URL",
-	Args:  cobra.ExactArgs(1),
+	Args: func(cmd *cobra.Command, args []string) error {
+		allFlag, _ := cmd.Flags().GetBool("all")
+		if allFlag {
+			if len(args) > 0 {
+				return fmt.Errorf("cannot specify addon identifier when using --all flag")
+			}
+			return nil
+		}
+		return cobra.ExactArgs(1)(cmd, args)
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		identifier := args[0]
 		checkOnly, _ := cmd.Flags().GetBool("check")
+		allFlag, _ := cmd.Flags().GetBool("all")
+
+		// Handle --all flag
+		if allFlag {
+			return updateAllThemes(checkOnly)
+		}
+
+		identifier := args[0]
 
 		// For non-URL identifiers, check if update is available
 		if !utils.IsURL(identifier) {
@@ -180,6 +196,105 @@ var themesUpdateCmd = &cobra.Command{
 	},
 }
 
+func updateAllThemes(checkOnly bool) error {
+	items, err := betterdiscord.ListAddons(betterdiscord.AddonTheme)
+	if err != nil {
+		return err
+	}
+
+	if len(items) == 0 {
+		output.Println("📭 No themes installed.")
+		return nil
+	}
+
+	var toUpdate []struct {
+		entry        betterdiscord.AddonEntry
+		localVersion string
+		storeVersion string
+		name         string
+	}
+
+	output.Println("🔍 Checking for theme updates...")
+
+	// Check each theme for updates
+	for _, item := range items {
+		name := item.Meta.Name
+		if name == "" {
+			name = item.BaseName
+		}
+
+		// Try to find in store by name or ID
+		identifier := name
+		if identifier == "" {
+			identifier = item.BaseName
+		}
+
+		store, err := betterdiscord.FetchAddonFromStore(identifier)
+		if err != nil {
+			// Theme not in store, skip
+			continue
+		}
+
+		localVersion := item.Meta.Version
+		storeVersion := store.Version
+
+		if localVersion != storeVersion {
+			toUpdate = append(toUpdate, struct {
+				entry        betterdiscord.AddonEntry
+				localVersion string
+				storeVersion string
+				name         string
+			}{
+				entry:        item,
+				localVersion: localVersion,
+				storeVersion: storeVersion,
+				name:         name,
+			})
+		}
+	}
+
+	if len(toUpdate) == 0 {
+		output.Println("✅ All themes are up to date!")
+		return nil
+	}
+
+	output.Printf("\n📦 Found %d theme(s) with available updates:\n\n", len(toUpdate))
+
+	// Show what would be updated
+	for _, item := range toUpdate {
+		output.Printf("  • %s: v%s → v%s\n", item.name, item.localVersion, item.storeVersion)
+	}
+	output.Println()
+
+	if checkOnly {
+		output.Println("💡 To install these updates, use: bdcli themes update --all (without --check)")
+		return nil
+	}
+
+	// Perform updates
+	updated := 0
+	failed := 0
+
+	for _, item := range toUpdate {
+		identifier := item.name
+		if identifier == "" {
+			identifier = item.entry.BaseName
+		}
+
+		_, err := betterdiscord.UpdateAddon(betterdiscord.AddonTheme, identifier)
+		if err != nil {
+			output.Printf("❌ Failed to update %s: %v\n", item.name, err)
+			failed++
+		} else {
+			output.Printf("✅ Updated %s to v%s\n", item.name, item.storeVersion)
+			updated++
+		}
+	}
+
+	output.Printf("\n📊 Summary: %d updated, %d failed\n", updated, failed)
+	return nil
+}
+
 func initThemesCmd() {
 	// Parent command: themes
 	themesCmd.AddCommand(themesListCmd)
@@ -189,4 +304,5 @@ func initThemesCmd() {
 	themesCmd.AddCommand(themesUpdateCmd)
 	rootCmd.AddCommand(themesCmd)
 	themesUpdateCmd.Flags().BoolP("check", "c", false, "Check for available updates without installing")
+	themesUpdateCmd.Flags().BoolP("all", "a", false, "Update all installed themes")
 }

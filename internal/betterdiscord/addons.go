@@ -183,9 +183,7 @@ func UpdateAddon(kind AddonKind, identifier string) (*ResolvedAddon, error) {
 
 func addonDir(kind AddonKind) (string, error) {
 	inst := GetInstallation()
-	// if err := inst.Prepare(); err != nil {
-	// 	return "", err
-	// }
+
 	switch kind {
 	case AddonPlugin:
 		return inst.Plugins(), nil

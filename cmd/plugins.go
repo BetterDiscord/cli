@@ -22,6 +22,7 @@ func initPluginsCmd() {
 func init() {
 	initPluginsCmd()
 	pluginsUpdateCmd.Flags().BoolP("check", "c", false, "Check for available updates without installing")
+	pluginsUpdateCmd.Flags().BoolP("all", "a", false, "Update all installed plugins")
 }
 
 var pluginsCmd = &cobra.Command{
@@ -135,10 +136,26 @@ var pluginsRemoveCmd = &cobra.Command{
 var pluginsUpdateCmd = &cobra.Command{
 	Use:   "update <name|id|url>",
 	Short: "Update a plugin by name, ID, or URL",
-	Args:  cobra.ExactArgs(1),
+	Args: func(cmd *cobra.Command, args []string) error {
+		allFlag, _ := cmd.Flags().GetBool("all")
+		if allFlag {
+			if len(args) > 0 {
+				return fmt.Errorf("cannot specify addon identifier when using --all flag")
+			}
+			return nil
+		}
+		return cobra.ExactArgs(1)(cmd, args)
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		identifier := args[0]
 		checkOnly, _ := cmd.Flags().GetBool("check")
+		allFlag, _ := cmd.Flags().GetBool("all")
+
+		// Handle --all flag
+		if allFlag {
+			return updateAllPlugins(checkOnly)
+		}
+
+		identifier := args[0]
 
 		// For non-URL identifiers, check if update is available
 		if !utils.IsURL(identifier) {
@@ -191,3 +208,101 @@ var pluginsUpdateCmd = &cobra.Command{
 	},
 }
 
+func updateAllPlugins(checkOnly bool) error {
+	items, err := betterdiscord.ListAddons(betterdiscord.AddonPlugin)
+	if err != nil {
+		return err
+	}
+
+	if len(items) == 0 {
+		output.Println("📭 No plugins installed.")
+		return nil
+	}
+
+	var toUpdate []struct {
+		entry        betterdiscord.AddonEntry
+		localVersion string
+		storeVersion string
+		name         string
+	}
+
+	output.Println("🔍 Checking for plugin updates...")
+
+	// Check each plugin for updates
+	for _, item := range items {
+		name := item.Meta.Name
+		if name == "" {
+			name = item.BaseName
+		}
+
+		// Try to find in store by name or ID
+		identifier := name
+		if identifier == "" {
+			identifier = item.BaseName
+		}
+
+		store, err := betterdiscord.FetchAddonFromStore(identifier)
+		if err != nil {
+			// Plugin not in store, skip
+			continue
+		}
+
+		localVersion := item.Meta.Version
+		storeVersion := store.Version
+
+		if localVersion != storeVersion {
+			toUpdate = append(toUpdate, struct {
+				entry        betterdiscord.AddonEntry
+				localVersion string
+				storeVersion string
+				name         string
+			}{
+				entry:        item,
+				localVersion: localVersion,
+				storeVersion: storeVersion,
+				name:         name,
+			})
+		}
+	}
+
+	if len(toUpdate) == 0 {
+		output.Println("✅ All plugins are up to date!")
+		return nil
+	}
+
+	output.Printf("\n📦 Found %d plugin(s) with available updates:\n\n", len(toUpdate))
+
+	// Show what would be updated
+	for _, item := range toUpdate {
+		output.Printf("  • %s: v%s → v%s\n", item.name, item.localVersion, item.storeVersion)
+	}
+	output.Println()
+
+	if checkOnly {
+		output.Println("💡 To install these updates, use: bdcli plugins update --all (without --check)")
+		return nil
+	}
+
+	// Perform updates
+	updated := 0
+	failed := 0
+
+	for _, item := range toUpdate {
+		identifier := item.name
+		if identifier == "" {
+			identifier = item.entry.BaseName
+		}
+
+		_, err := betterdiscord.UpdateAddon(betterdiscord.AddonPlugin, identifier)
+		if err != nil {
+			output.Printf("❌ Failed to update %s: %v\n", item.name, err)
+			failed++
+		} else {
+			output.Printf("✅ Updated %s to v%s\n", item.name, item.storeVersion)
+			updated++
+		}
+	}
+
+	output.Printf("\n📊 Summary: %d updated, %d failed\n", updated, failed)
+	return nil
+}

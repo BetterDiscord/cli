@@ -111,7 +111,7 @@ func TestParseEmptyJSDoc(t *testing.T) {
 /**
  */
 `
-	println("Testing empty JSDoc")
+
 	got := parseJSDoc(input)
 
 	if got != (Meta{}) {

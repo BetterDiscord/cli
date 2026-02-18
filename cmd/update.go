@@ -79,8 +79,7 @@ var updateCmd = &cobra.Command{
 // Returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2
 func compareVersions(v1, v2 string) int {
 	// Strip 'v' prefix if present
-	v1 = "" + v1
-	v2 = "" + v2
+
 	if len(v1) > 0 && v1[0] == 'v' {
 		v1 = v1[1:]
 	}
