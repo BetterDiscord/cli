@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/betterdiscord/cli/internal/utils"
 	"github.com/betterdiscord/cli/internal/wsl"
 )
@@ -67,6 +68,23 @@ func (i *BDInstall) Repair(channel models.DiscordChannel) error {
 
 func (i *BDInstall) IsAsarInstalled() bool {
 	return utils.Exists(i.asar)
+}
+
+// RemoveAll deletes the BetterDiscord installation directory and all contents.
+func (i *BDInstall) RemoveAll() error {
+	if !utils.Exists(i.root) {
+		output.Printf("✅ BetterDiscord folder not found: %s\n", i.root)
+		return nil
+	}
+
+	if err := os.RemoveAll(i.root); err != nil {
+		output.Printf("❌ Failed to remove BetterDiscord folder: %s\n", i.root)
+		output.Printf("   %s\n", err.Error())
+		return err
+	}
+
+	output.Printf("✅ Removed BetterDiscord folder: %s\n", i.root)
+	return nil
 }
 
 var lock = &sync.Mutex{}

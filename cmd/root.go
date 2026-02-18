@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strings"
 
@@ -42,6 +43,12 @@ func GetDate() string {
 // IsDebugBuild returns true if this is a dev build (not set via ldflags)
 func IsDebugBuild() bool {
 	return buildVersion == "dev"
+}
+
+// isURL checks if a string is a valid URL
+func isURL(input string) bool {
+	parsed, err := url.Parse(input)
+	return err == nil && parsed.Scheme != "" && parsed.Host != ""
 }
 
 var silent bool

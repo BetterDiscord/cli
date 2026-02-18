@@ -90,6 +90,18 @@ Uninstall BetterDiscord by providing a Discord install path:
 bdcli uninstall --path /path/to/Discord
 ```
 
+Uninject BetterDiscord from all detected Discord installations (without deleting data):
+
+```bash
+bdcli uninstall --all
+```
+
+Fully uninstall BetterDiscord from all Discord installations and remove all BetterDiscord folders:
+
+```bash
+bdcli uninstall --full
+```
+
 ### Check Version
 
 ```bash
@@ -124,6 +136,7 @@ bdcli plugins list
 bdcli plugins info <name>
 bdcli plugins install <name|id|url>
 bdcli plugins update <name|id|url>
+bdcli plugins update <name|id> --check    # Check for updates without installing
 bdcli plugins remove <name|id>
 ```
 
@@ -134,6 +147,7 @@ bdcli themes list
 bdcli themes info <name>
 bdcli themes install <name|id|url>
 bdcli themes update <name|id|url>
+bdcli themes update <name|id> --check     # Check for updates without installing
 bdcli themes remove <name|id>
 ```
 

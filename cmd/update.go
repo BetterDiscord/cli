@@ -66,7 +66,11 @@ var updateCmd = &cobra.Command{
 			return fmt.Errorf("failed to download update: %w", err)
 		}
 
-		output.Printf("✅ Successfully updated to %s\n", output.FormatVersion(latestVersion))
+		output.Printf("✅ Successfully updated to %s\n\n", output.FormatVersion(latestVersion))
+
+		bdinstall.LogBuildinfo()
+
+		output.Println("\n🔄 Please restart Discord for the update to take effect.")
 		return nil
 	},
 }

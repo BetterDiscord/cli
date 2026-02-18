@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
+func initPluginsCmd() {
 	// Parent command: plugins
 	pluginsCmd.AddCommand(pluginsListCmd)
 	pluginsCmd.AddCommand(pluginsInfoCmd)
@@ -16,6 +16,11 @@ func init() {
 	pluginsCmd.AddCommand(pluginsRemoveCmd)
 	pluginsCmd.AddCommand(pluginsUpdateCmd)
 	rootCmd.AddCommand(pluginsCmd)
+}
+
+func init() {
+	initPluginsCmd()
+	pluginsUpdateCmd.Flags().BoolP("check", "c", false, "Check for available updates without installing")
 }
 
 var pluginsCmd = &cobra.Command{
@@ -80,6 +85,18 @@ var pluginsInstallCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
+		// Check if not a URL and already installed
+		if !isURL(identifier) {
+			if existing := betterdiscord.FindAddon(betterdiscord.AddonPlugin, identifier); existing != nil {
+				name := existing.Meta.Name
+				if name == "" {
+					name = existing.BaseName
+				}
+				output.Printf("⚠️ Plugin '%s' is already installed.\n", name)
+				output.Println("💡 To update the plugin, use: bdcli plugins update <name|id|url>")
+				return nil
+			}
+		}
 		resolved, err := betterdiscord.InstallAddon(betterdiscord.AddonPlugin, identifier)
 		if err != nil {
 			return err
@@ -96,10 +113,20 @@ var pluginsRemoveCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
+		// Check if addon exists before attempting removal
+		existing := betterdiscord.FindAddon(betterdiscord.AddonPlugin, identifier)
+		if existing == nil {
+			output.Printf("❌ Plugin '%s' is not installed.\n", identifier)
+			return nil
+		}
 		if err := betterdiscord.RemoveAddon(betterdiscord.AddonPlugin, identifier); err != nil {
 			return err
 		}
-		output.Printf("✅ Plugin removed: %s\n", identifier)
+		name := existing.Meta.Name
+		if name == "" {
+			name = existing.BaseName
+		}
+		output.Printf("✅ Plugin removed: %s\n", name)
 		return nil
 	},
 }
@@ -110,6 +137,50 @@ var pluginsUpdateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
+		checkOnly, _ := cmd.Flags().GetBool("check")
+
+		// For non-URL identifiers, check if update is available
+		if !isURL(identifier) {
+			existing := betterdiscord.FindAddon(betterdiscord.AddonPlugin, identifier)
+			if existing == nil {
+				output.Printf("❌ Plugin '%s' is not installed.\n", identifier)
+				return nil
+			}
+
+			// Try to fetch from store to check version
+			store, err := betterdiscord.FetchAddonFromStore(identifier)
+			if err == nil && store != nil {
+				localVersion := existing.Meta.Version
+				storeVersion := store.Version
+
+				if localVersion == storeVersion {
+					localName := existing.Meta.Name
+					if localName == "" {
+						localName = existing.BaseName
+					}
+					output.Printf("✅ Plugin '%s' is already up to date (v%s)\n", localName, localVersion)
+					return nil
+				}
+
+				localName := existing.Meta.Name
+				if localName == "" {
+					localName = existing.BaseName
+				}
+
+				if checkOnly {
+					output.Printf("📦 Update available for '%s'\n", localName)
+					output.Printf("   Current: v%s → Available: v%s\n", localVersion, storeVersion)
+					output.Println("💡 To install the update, use: bdcli plugins update <name|id|url> (without --check)")
+					return nil
+				}
+			}
+		}
+
+		if checkOnly {
+			output.Println("⚠️  Cannot check version when using direct URL")
+			return nil
+		}
+
 		resolved, err := betterdiscord.UpdateAddon(betterdiscord.AddonPlugin, identifier)
 		if err != nil {
 			return err
@@ -118,3 +189,4 @@ var pluginsUpdateCmd = &cobra.Command{
 		return nil
 	},
 }
+

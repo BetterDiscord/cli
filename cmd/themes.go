@@ -9,13 +9,7 @@ import (
 )
 
 func init() {
-	// Parent command: themes
-	themesCmd.AddCommand(themesListCmd)
-	themesCmd.AddCommand(themesInfoCmd)
-	themesCmd.AddCommand(themesInstallCmd)
-	themesCmd.AddCommand(themesRemoveCmd)
-	themesCmd.AddCommand(themesUpdateCmd)
-	rootCmd.AddCommand(themesCmd)
+	initThemesCmd()
 }
 
 var themesCmd = &cobra.Command{
@@ -80,6 +74,18 @@ var themesInstallCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
+		// Check if not a URL and already installed
+		if !isURL(identifier) {
+			if existing := betterdiscord.FindAddon(betterdiscord.AddonTheme, identifier); existing != nil {
+				name := existing.Meta.Name
+				if name == "" {
+					name = existing.BaseName
+				}
+				output.Printf("⚠️ Theme '%s' is already installed.\n", name)
+				output.Println("💡 To update the theme, use: bdcli themes update <name|id|url>")
+				return nil
+			}
+		}
 		resolved, err := betterdiscord.InstallAddon(betterdiscord.AddonTheme, identifier)
 		if err != nil {
 			return err
@@ -96,10 +102,20 @@ var themesRemoveCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
+		// Check if addon exists before attempting removal
+		existing := betterdiscord.FindAddon(betterdiscord.AddonTheme, identifier)
+		if existing == nil {
+			output.Printf("❌ Theme '%s' is not installed.\n", identifier)
+			return nil
+		}
 		if err := betterdiscord.RemoveAddon(betterdiscord.AddonTheme, identifier); err != nil {
 			return err
 		}
-		output.Printf("✅ Theme removed: %s\n", identifier)
+		name := existing.Meta.Name
+		if name == "" {
+			name = existing.BaseName
+		}
+		output.Printf("✅ Theme removed: %s\n", name)
 		return nil
 	},
 }
@@ -110,6 +126,50 @@ var themesUpdateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
+		checkOnly, _ := cmd.Flags().GetBool("check")
+
+		// For non-URL identifiers, check if update is available
+		if !isURL(identifier) {
+			existing := betterdiscord.FindAddon(betterdiscord.AddonTheme, identifier)
+			if existing == nil {
+				output.Printf("❌ Theme '%s' is not installed.\n", identifier)
+				return nil
+			}
+
+			// Try to fetch from store to check version
+			store, err := betterdiscord.FetchAddonFromStore(identifier)
+			if err == nil && store != nil {
+				localVersion := existing.Meta.Version
+				storeVersion := store.Version
+
+				if localVersion == storeVersion {
+					localName := existing.Meta.Name
+					if localName == "" {
+						localName = existing.BaseName
+					}
+					output.Printf("✅ Theme '%s' is already up to date (v%s)\n", localName, localVersion)
+					return nil
+				}
+
+				localName := existing.Meta.Name
+				if localName == "" {
+					localName = existing.BaseName
+				}
+
+				if checkOnly {
+					output.Printf("📦 Update available for '%s'\n", localName)
+					output.Printf("   Current: v%s → Available: v%s\n", localVersion, storeVersion)
+					output.Println("💡 To install the update, use: bdcli themes update <name|id|url> (without --check)")
+					return nil
+				}
+			}
+		}
+
+		if checkOnly {
+			output.Println("⚠️  Cannot check version when using direct URL")
+			return nil
+		}
+
 		resolved, err := betterdiscord.UpdateAddon(betterdiscord.AddonTheme, identifier)
 		if err != nil {
 			return err
@@ -117,4 +177,15 @@ var themesUpdateCmd = &cobra.Command{
 		output.Printf("✅ Theme updated at %s\n", resolved.URL)
 		return nil
 	},
+}
+
+func initThemesCmd() {
+	// Parent command: themes
+	themesCmd.AddCommand(themesListCmd)
+	themesCmd.AddCommand(themesInfoCmd)
+	themesCmd.AddCommand(themesInstallCmd)
+	themesCmd.AddCommand(themesRemoveCmd)
+	themesCmd.AddCommand(themesUpdateCmd)
+	rootCmd.AddCommand(themesCmd)
+	themesUpdateCmd.Flags().BoolP("check", "c", false, "Check for available updates without installing")
 }

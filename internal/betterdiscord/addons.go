@@ -79,6 +79,32 @@ func ListAddons(kind AddonKind) ([]AddonEntry, error) {
 	return out, nil
 }
 
+// FindAddon searches for an installed addon by identifier (name, filename, or meta name).
+// Returns the addon entry if found, or nil if not found.
+func FindAddon(kind AddonKind, identifier string) *AddonEntry {
+	items, err := ListAddons(kind)
+	if err != nil {
+		return nil
+	}
+
+	lower := strings.ToLower(identifier)
+	for i := range items {
+		// Match by filename (case-insensitive)
+		if strings.ToLower(items[i].FullFilename) == lower || strings.ToLower(items[i].FullFilename) == lower+".plugin.js" || strings.ToLower(items[i].FullFilename) == lower+".theme.css" {
+			return &items[i]
+		}
+		// Match by base name (case-insensitive)
+		if strings.ToLower(items[i].BaseName) == lower {
+			return &items[i]
+		}
+		// Match by meta name (case-insensitive)
+		if strings.ToLower(items[i].Meta.Name) == lower {
+			return &items[i]
+		}
+	}
+	return nil
+}
+
 // InstallAddon installs an addon. Identifier can be:
 // - A direct URL (https://...)
 // - An addon ID (numeric)
