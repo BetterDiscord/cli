@@ -119,7 +119,7 @@ func InstallAddon(kind AddonKind, identifier string) (*ResolvedAddon, error) {
 	resolved := &ResolvedAddon{}
 
 	// Case 1: Direct URL
-	if isURL(identifier) {
+	if utils.IsURL(identifier) {
 		dest, err := downloadAddon(kind, dir, identifier)
 		if err != nil {
 			return nil, err
@@ -259,11 +259,6 @@ func candidateFilenames(kind AddonKind, identifier string) []string {
 		}
 	}
 	return out
-}
-
-func isURL(input string) bool {
-	parsed, err := url.Parse(input)
-	return err == nil && parsed.Scheme != "" && parsed.Host != ""
 }
 
 // LogLocalAddonInfo prints detailed information about a locally installed addon.

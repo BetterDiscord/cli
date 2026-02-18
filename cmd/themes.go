@@ -5,6 +5,7 @@ import (
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
 	"github.com/betterdiscord/cli/internal/output"
+	"github.com/betterdiscord/cli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -75,7 +76,7 @@ var themesInstallCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		identifier := args[0]
 		// Check if not a URL and already installed
-		if !isURL(identifier) {
+		if !utils.IsURL(identifier) {
 			if existing := betterdiscord.FindAddon(betterdiscord.AddonTheme, identifier); existing != nil {
 				name := existing.Meta.Name
 				if name == "" {
@@ -129,7 +130,7 @@ var themesUpdateCmd = &cobra.Command{
 		checkOnly, _ := cmd.Flags().GetBool("check")
 
 		// For non-URL identifiers, check if update is available
-		if !isURL(identifier) {
+		if !utils.IsURL(identifier) {
 			existing := betterdiscord.FindAddon(betterdiscord.AddonTheme, identifier)
 			if existing == nil {
 				output.Printf("❌ Theme '%s' is not installed.\n", identifier)
