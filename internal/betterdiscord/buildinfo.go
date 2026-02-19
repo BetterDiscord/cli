@@ -44,7 +44,7 @@ func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 
 	// Compile your regexes
 	versionRe := regexp.MustCompile(`version:\s?"([0-9]+\.[0-9]+\.[0-9]+)"`)
-	commitRe := regexp.MustCompile(`commit:\s?"(\b[0-9a-f]{5,40}\b)"`)
+	commitRe := regexp.MustCompile(`commit:\s?"([0-9a-f]{5,40})"`)
 	branchRe := regexp.MustCompile(`branch:\s?"([a-zA-Z0-9_\-]+)"`)
 	modeRe := regexp.MustCompile(`build:\s?"([a-zA-Z]+)"`)
 
@@ -90,11 +90,16 @@ func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 				}
 			}
 
-			// Keep last 1 KB as tail (enough for your patterns)
+			// Keep last 1 KB as tail for next round
+			// Use a copy to avoid holding onto the entire window
 			if len(window) > 1024 {
-				tail = window[len(window)-1024:]
+				newTail := make([]byte, 1024)
+				copy(newTail, window[len(window)-1024:])
+				tail = newTail
 			} else {
-				tail = window
+				newTail := make([]byte, len(window))
+				copy(newTail, window)
+				tail = newTail
 			}
 		}
 

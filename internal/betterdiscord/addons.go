@@ -218,6 +218,16 @@ func downloadAddon(kind AddonKind, dir, rawURL string) (string, error) {
 	}
 
 	dest := filepath.Join(dir, base)
+
+	// Normalize and ensure the destination remains within the addon directory
+	dest = filepath.Clean(dest)
+	dirClean := filepath.Clean(dir)
+	dirWithSep := dirClean + string(os.PathSeparator)
+
+	if dest != dirClean && !strings.HasPrefix(dest, dirWithSep) {
+		return "", fmt.Errorf("resolved addon path is outside the addon directory")
+	}
+
 	if _, err := utils.DownloadFile(rawURL, dest); err != nil {
 		return "", err
 	}
