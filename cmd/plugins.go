@@ -64,12 +64,12 @@ var pluginsInfoCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 		existing := betterdiscord.FindAddon(betterdiscord.AddonPlugin, name)
-        if existing == nil {
-            output.Printf("❌ Plugin '%s' not found.\n", name)
-            return nil
-        }
+		if existing == nil {
+			output.Printf("❌ Plugin '%s' not found.\n", name)
+			return nil
+		}
 
-        betterdiscord.LogLocalAddonInfo(existing)
+		betterdiscord.LogLocalAddonInfo(existing)
 		return nil
 	},
 }

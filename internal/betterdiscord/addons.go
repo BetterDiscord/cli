@@ -35,7 +35,7 @@ type AddonEntry struct {
 // ResolvedAddon holds both local and store metadata for an addon.
 type ResolvedAddon struct {
 	Store *models.StoreAddon // Metadata from store (nil if not found)
-	Path   string            // Local install path
+	Path  string             // Local install path
 }
 
 // ListAddons returns the locally installed addons for the given kind.

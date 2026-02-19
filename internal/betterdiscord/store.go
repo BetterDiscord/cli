@@ -131,17 +131,17 @@ func ResolveAddonIdentifier(identifier string) (int, string, bool) {
 func FetchAddonsOfType(kind string) ([]models.StoreAddon, error) {
 	k := strings.ToLower(kind)
 
-    var endpoint string
-    switch k {
-    case "", "addon", "addons":
-        endpoint = "addons"
-    case "plugin", "plugins":
-        endpoint = "plugins"
-    case "theme", "themes":
-        endpoint = "themes"
-    default:
-        return nil, fmt.Errorf("invalid addon kind %q (expected plugin[s], theme[s], or addon[s])", kind)
-    }
+	var endpoint string
+	switch k {
+	case "", "addon", "addons":
+		endpoint = "addons"
+	case "plugin", "plugins":
+		endpoint = "plugins"
+	case "theme", "themes":
+		endpoint = "themes"
+	default:
+		return nil, fmt.Errorf("invalid addon kind %q (expected plugin[s], theme[s], or addon[s])", kind)
+	}
 	apiURL := fmt.Sprintf("https://api.betterdiscord.app/v3/store/%s", endpoint)
 
 	addons, err := utils.DownloadJSON[[]models.StoreAddon](apiURL)
