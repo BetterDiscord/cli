@@ -3,8 +3,10 @@ package betterdiscord
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/betterdiscord/cli/internal/models"
 	"github.com/betterdiscord/cli/internal/output"
@@ -14,7 +16,7 @@ import (
 // FetchAddonFromStore queries the BetterDiscord Store API by name or ID.
 // Returns addon metadata including download URL.
 func FetchAddonFromStore(identifier string) (*models.StoreAddon, error) {
-	apiURL := fmt.Sprintf("https://api.betterdiscord.app/v3/store/%s", identifier)
+	apiURL := fmt.Sprintf("https://api.betterdiscord.app/v3/store/%s", url.PathEscape(identifier))
 
 	addon, err := utils.DownloadJSON[models.StoreAddon](apiURL)
 	if err != nil {
@@ -37,6 +39,7 @@ func GetAddonDownloadURL(id int) (s string, err error) {
 
 	// Create client that follows redirects and returns the final URL
 	client := &http.Client{
+		Timeout: 10 * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Allow up to 10 redirects
 			if len(via) >= 10 {
@@ -126,10 +129,19 @@ func ResolveAddonIdentifier(identifier string) (int, string, bool) {
 // FetchAddonsOfType fetches all addons of a specific type from the store.
 // Kind can be "plugin", "theme", or "addon" for all types.
 func FetchAddonsOfType(kind string) ([]models.StoreAddon, error) {
-	endpoint := kind
-	if kind == "" {
-		endpoint = "addons"
-	}
+	k := strings.ToLower(kind)
+
+    var endpoint string
+    switch k {
+    case "", "addon", "addons":
+        endpoint = "addons"
+    case "plugin", "plugins":
+        endpoint = "plugins"
+    case "theme", "themes":
+        endpoint = "themes"
+    default:
+        return nil, fmt.Errorf("invalid addon kind %q (expected plugin[s], theme[s], or addon[s])", kind)
+    }
 	apiURL := fmt.Sprintf("https://api.betterdiscord.app/v3/store/%s", endpoint)
 
 	addons, err := utils.DownloadJSON[[]models.StoreAddon](apiURL)

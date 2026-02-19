@@ -51,20 +51,13 @@ var themesInfoCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
-		items, err := betterdiscord.ListAddons(betterdiscord.AddonTheme)
-		if err != nil {
-			return err
-		}
+		existing := betterdiscord.FindAddon(betterdiscord.AddonTheme, name)
+        if existing == nil {
+            output.Printf("❌ Theme '%s' not found.\n", name)
+            return nil
+        }
 
-		for _, item := range items {
-			// Match by filename or meta name
-			if item.BaseName == name || item.FullFilename == name || item.Meta.Name == name {
-				betterdiscord.LogLocalAddonInfo(&item)
-				return nil
-			}
-		}
-
-		output.Printf("❌ Theme '%s' not found.\n", name)
+        betterdiscord.LogLocalAddonInfo(existing)
 		return nil
 	},
 }
@@ -91,7 +84,7 @@ var themesInstallCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		output.Printf("✅ Theme installed at %s\n", resolved.URL)
+		output.Printf("✅ Theme installed at %s\n", resolved.Path)
 		return nil
 	},
 }
@@ -191,7 +184,7 @@ var themesUpdateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		output.Printf("✅ Theme updated at %s\n", resolved.URL)
+		output.Printf("✅ Theme updated at %s\n", resolved.Path)
 		return nil
 	},
 }

@@ -17,12 +17,12 @@ var (
 )
 
 // SetWriters overrides the output writers (useful for tests).
-func SetWriters(out, err io.Writer) {
-	if out != nil {
-		stdOut = out
+func SetWriters(stdout, stderr io.Writer) {
+	if stdout != nil {
+		stdOut = stdout
 	}
-	if err != nil {
-		stdErr = err
+	if stderr != nil {
+		stdErr = stderr
 	}
 }
 

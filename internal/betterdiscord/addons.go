@@ -35,7 +35,7 @@ type AddonEntry struct {
 // ResolvedAddon holds both local and store metadata for an addon.
 type ResolvedAddon struct {
 	Store *models.StoreAddon // Metadata from store (nil if not found)
-	URL   string             // Download URL
+	Path   string            // Local install path
 }
 
 // ListAddons returns the locally installed addons for the given kind.
@@ -124,7 +124,7 @@ func InstallAddon(kind AddonKind, identifier string) (*ResolvedAddon, error) {
 		if err != nil {
 			return nil, err
 		}
-		resolved.URL = dest
+		resolved.Path = dest
 		return resolved, nil
 	}
 
@@ -152,7 +152,7 @@ func InstallAddon(kind AddonKind, identifier string) (*ResolvedAddon, error) {
 		return nil, err
 	}
 
-	resolved.URL = dest
+	resolved.Path = dest
 	LogAddonInfo(addon)
 	return resolved, nil
 }
@@ -177,7 +177,10 @@ func RemoveAddon(kind AddonKind, identifier string) error {
 
 // UpdateAddon removes then installs again, returning resolved metadata.
 func UpdateAddon(kind AddonKind, identifier string) (*ResolvedAddon, error) {
-	_ = RemoveAddon(kind, identifier)
+	err := RemoveAddon(kind, identifier)
+	if err != nil {
+		return nil, err
+	}
 	return InstallAddon(kind, identifier)
 }
 

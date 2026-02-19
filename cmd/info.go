@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/betterdiscord/cli/internal/betterdiscord"
-	"github.com/betterdiscord/cli/internal/output"
 )
 
 func init() {
@@ -23,8 +22,6 @@ var infoCmd = &cobra.Command{
 		if !bdinstall.IsAsarInstalled() {
 			return fmt.Errorf("BetterDiscord does not appear to be installed, try running 'bdcli install' first")
 		}
-
-		output.Printf("📦 BetterDiscord Information:\n\n")
 
 		bdinstall.LogBuildinfo()
 

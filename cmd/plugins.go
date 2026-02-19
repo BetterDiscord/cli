@@ -63,20 +63,13 @@ var pluginsInfoCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
-		items, err := betterdiscord.ListAddons(betterdiscord.AddonPlugin)
-		if err != nil {
-			return err
-		}
+		existing := betterdiscord.FindAddon(betterdiscord.AddonPlugin, name)
+        if existing == nil {
+            output.Printf("❌ Plugin '%s' not found.\n", name)
+            return nil
+        }
 
-		for _, item := range items {
-			// Match by filename or meta name
-			if item.BaseName == name || item.FullFilename == name || item.Meta.Name == name {
-				betterdiscord.LogLocalAddonInfo(&item)
-				return nil
-			}
-		}
-
-		output.Printf("❌ Plugin '%s' not found.\n", name)
+        betterdiscord.LogLocalAddonInfo(existing)
 		return nil
 	},
 }
@@ -103,7 +96,7 @@ var pluginsInstallCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		output.Printf("✅ Plugin installed at %s\n", resolved.URL)
+		output.Printf("✅ Plugin installed at %s\n", resolved.Path)
 		return nil
 	},
 }
@@ -203,7 +196,7 @@ var pluginsUpdateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		output.Printf("✅ Plugin updated at %s\n", resolved.URL)
+		output.Printf("✅ Plugin updated at %s\n", resolved.Path)
 		return nil
 	},
 }

@@ -2,6 +2,7 @@ package betterdiscord
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"regexp"
 
@@ -65,7 +66,7 @@ func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 	var tail []byte
 
 	for {
-		n, err := reader.Read(buf)
+		n, readErr := reader.Read(buf)
 		if n > 0 {
 			// Combine tail + new chunk
 			window := append(tail, buf[:n]...)
@@ -97,8 +98,11 @@ func (i *BDInstall) ReadBuildinfo() (bi Buildinfo, err error) {
 			}
 		}
 
-		if err != nil {
-			break
+		if readErr != nil {
+			if readErr == io.EOF {
+				break
+			}
+			return NewBuildinfo(), readErr
 		}
 	}
 
