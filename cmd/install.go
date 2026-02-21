@@ -8,6 +8,7 @@ import (
 
 	"github.com/betterdiscord/cli/internal/discord"
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 )
 
 func init() {
@@ -17,9 +18,10 @@ func init() {
 }
 
 var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "Installs BetterDiscord to your Discord",
-	Long:  "Install BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
+	Use:     "install",
+	Aliases: []string{"reinstall"},
+	Short:   "Installs BetterDiscord to your Discord",
+	Long:    "Install BetterDiscord by specifying either --path to a Discord install or --channel to auto-detect (default: stable).",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		pathFlag, _ := cmd.Flags().GetString("path")
 		channelFlag, _ := cmd.Flags().GetString("channel")
@@ -51,7 +53,25 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("installation failed: %w", err)
 		}
 
-		fmt.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
+		output.Printf("✅ BetterDiscord installed to %s\n", path.Dir(install.CorePath))
+		output.Blank()
+		output.Printf("📋 Installation Summary:\n")
+		output.Blank()
+		output.Printf("   Release Channel: %s\n", install.Channel.Display())
+		output.Printf("   Discord Version: %s\n", install.Version)
+		output.Printf("   Install Type:    %s\n", func() string {
+			if install.IsFlatpak {
+				return "flatpak"
+			} else if install.IsSnap {
+				return "snap"
+			}
+			return "native"
+		}())
+		output.Printf("   Core Path:       %s\n", path.Dir(install.CorePath))
+		output.Blank()
+
+		bdinstall := install.GetBetterDiscordInstall()
+		bdinstall.LogBuildinfo()
 		return nil
 	},
 }

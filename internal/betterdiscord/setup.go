@@ -1,11 +1,11 @@
 package betterdiscord
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/betterdiscord/cli/internal/models"
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/betterdiscord/cli/internal/utils"
 )
 
@@ -13,17 +13,17 @@ func makeDirectory(folder string) error {
 	exists := utils.Exists(folder)
 
 	if exists {
-		log.Printf("✅ Directory exists: %s", folder)
+		output.Printf("✅ Directory exists: %s\n", folder)
 		return nil
 	}
 
 	if err := os.MkdirAll(folder, 0755); err != nil {
-		log.Printf("❌ Failed to create directory: %s", folder)
-		log.Printf("❌ %s", err.Error())
+		output.Printf("❌ Failed to create directory: %s\n", folder)
+		output.Printf("   %s\n", err.Error())
 		return err
 	}
 
-	log.Printf("✅ Directory created: %s", folder)
+	output.Printf("✅ Directory created: %s\n", folder)
 	return nil
 }
 
@@ -45,16 +45,16 @@ func (i *BDInstall) repair(channel models.DiscordChannel) error {
 	pluginsJson := filepath.Join(channelFolder, "plugins.json")
 
 	if !utils.Exists(pluginsJson) {
-		log.Printf("✅ No plugins enabled for %s", channel.Name())
+		output.Printf("✅ No plugins enabled for %s\n", channel.Name())
 		return nil
 	}
 
 	if err := os.Remove(pluginsJson); err != nil {
-		log.Printf("❌ Unable to remove file %s", pluginsJson)
-		log.Printf("❌ %s", err.Error())
+		output.Printf("❌ Unable to remove file %s\n", pluginsJson)
+		output.Printf("   %s\n", err.Error())
 		return err
 	}
 
-	log.Printf("✅ Plugins disabled for %s", channel.Name())
+	output.Printf("✅ Plugins disabled for %s\n", channel.Name())
 	return nil
 }

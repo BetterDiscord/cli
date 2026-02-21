@@ -11,6 +11,9 @@ A cross-platform command-line interface for installing, updating, and managing [
 
 - 🚀 Easy installation and uninstallation of BetterDiscord
 - 🔄 Support for multiple Discord channels (Stable, PTB, Canary)
+- 🧭 Discover Discord installs and suggested paths
+- 🧩 Manage plugins and themes (list, install, update, remove)
+- 🛒 Browse and search the BetterDiscord store
 - 🖥️ Cross-platform support (Windows, macOS, Linux)
 - 📦 Available via npm for easy distribution
 - ⚡ Fast and lightweight Go binary
@@ -47,6 +50,14 @@ Download the latest release for your platform from the [releases page](https://g
 
 ## Usage
 
+### Global Options
+
+```bash
+bdcli --silent <command>   # Suppress non-error output
+```
+
+You can also set `BDCLI_SILENT=1` to silence output in automation.
+
 ### Install BetterDiscord
 
 Install BetterDiscord to a specific Discord channel:
@@ -79,10 +90,78 @@ Uninstall BetterDiscord by providing a Discord install path:
 bdcli uninstall --path /path/to/Discord
 ```
 
+Uninject BetterDiscord from all detected Discord installations (without deleting data):
+
+```bash
+bdcli uninstall --all
+```
+
+Fully uninstall BetterDiscord from all Discord installations and remove all BetterDiscord folders:
+
+```bash
+bdcli uninstall --full
+```
+
 ### Check Version
 
 ```bash
 bdcli version
+```
+
+### Update BetterDiscord
+
+```bash
+bdcli update
+bdcli update --check
+```
+
+### Show BetterDiscord Info
+
+```bash
+bdcli info
+```
+
+### Discover Discord Installs
+
+```bash
+bdcli discover installs
+bdcli discover paths
+bdcli discover addons
+```
+
+### Manage Plugins
+
+```bash
+bdcli plugins list
+bdcli plugins info <name>
+bdcli plugins install <name|id|url>
+bdcli plugins update <name|id|url>
+bdcli plugins update <name|id> --check    # Check for updates without installing
+bdcli plugins remove <name|id>
+```
+
+### Manage Themes
+
+```bash
+bdcli themes list
+bdcli themes info <name>
+bdcli themes install <name|id|url>
+bdcli themes update <name|id|url>
+bdcli themes update <name|id> --check     # Check for updates without installing
+bdcli themes remove <name|id>
+```
+
+### Browse the Store
+
+```bash
+bdcli store search <query>
+bdcli store show <id|name>
+
+bdcli store plugins search <query>
+bdcli store plugins show <id|name>
+
+bdcli store themes search <query>
+bdcli store themes show <id|name>
 ```
 
 ### Shell Completions
@@ -100,6 +179,18 @@ bdcli --help
 bdcli [command] --help
 ```
 
+### Automation
+
+For scripts and CI jobs, you can suppress non-error output:
+
+```bash
+# One-off command
+bdcli --silent install --channel stable
+
+# Environment variable (applies to all commands)
+BDCLI_SILENT=1 bdcli update
+```
+
 ### CLI Help Output
 
 ```
@@ -111,13 +202,20 @@ Usage:
 
 Available Commands:
    completion  Generate shell completions
+   discover    Discover Discord installations and related data
    help        Help about any command
+   info        Displays information about BetterDiscord installation
    install     Installs BetterDiscord to your Discord
+   plugins     Manage BetterDiscord plugins
+   store       Browse and search the BetterDiscord store
+   themes      Manage BetterDiscord themes
    uninstall   Uninstalls BetterDiscord from your Discord
+   update      Update BetterDiscord to the latest version
    version     Print the version number
 
 Flags:
-   -h, --help   help for bdcli
+       --silent   Suppress non-error output
+   -h, --help     help for bdcli
 
 Use "bdcli [command] --help" for more information about a command.
 ```
@@ -235,6 +333,12 @@ task coverage
 .
 ├── cmd/                  # Cobra commands
 │   ├── install.go       # Install command
+│   ├── update.go        # Update command
+│   ├── info.go          # Info command
+│   ├── discover.go      # Discover command
+│   ├── plugins.go       # Plugins commands
+│   ├── themes.go        # Themes commands
+│   ├── store.go         # Store commands
 │   ├── uninstall.go     # Uninstall command
 │   ├── version.go       # Version command
 │   └── root.go          # Root command

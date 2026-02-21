@@ -2,10 +2,10 @@ package discord
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 
+	"github.com/betterdiscord/cli/internal/output"
 	"github.com/shirou/gopsutil/v3/process"
 )
 
@@ -13,13 +13,13 @@ func (discord *DiscordInstall) restart() error {
 	exeName := discord.getFullExe()
 
 	if running, _ := discord.isRunning(); !running {
-		log.Printf("✅ %s not running", discord.Channel.Name())
+		output.Printf("✅ %s is not running; skipping restart.\n", discord.Channel.Name())
 		return nil
 	}
 
 	if err := discord.kill(); err != nil {
-		log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
-		log.Printf("❌ %s", err.Error())
+		output.Printf("❌ Unable to restart %s, please do so manually.\n", discord.Channel.Name())
+		output.Printf("   %s\n", err.Error())
 		return err
 	}
 
@@ -32,7 +32,7 @@ func (discord *DiscordInstall) restart() error {
 	} else {
 		// Use binary found in killing process for non-Flatpak/Snap installs
 		if exeName == "" {
-			log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
+			output.Printf("❌ Unable to restart %s, please do so manually.\n", discord.Channel.Name())
 			return fmt.Errorf("could not determine executable path for %s", discord.Channel.Name())
 		}
 		cmd = exec.Command(exeName)
@@ -42,11 +42,11 @@ func (discord *DiscordInstall) restart() error {
 	cmd.Dir, _ = os.UserHomeDir()
 
 	if err := cmd.Start(); err != nil {
-		log.Printf("❌ Unable to restart %s, please do so manually!", discord.Channel.Name())
-		log.Printf("❌ %s", err.Error())
+		output.Printf("❌ Unable to restart %s, please do so manually.\n", discord.Channel.Name())
+		output.Printf("   %s\n", err.Error())
 		return err
 	}
-	log.Printf("✅ Restarted %s", discord.Channel.Name())
+	output.Printf("✅ Restarted %s\n", discord.Channel.Name())
 	return nil
 }
 

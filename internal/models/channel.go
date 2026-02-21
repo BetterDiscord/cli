@@ -30,6 +30,19 @@ func (channel DiscordChannel) String() string {
 	return ""
 }
 
+// Display returns the display name of the Discord channel
+func (channel DiscordChannel) Display() string {
+	switch channel {
+	case Stable:
+		return "Stable"
+	case Canary:
+		return "Canary"
+	case PTB:
+		return "PTB"
+	}
+	return ""
+}
+
 // Used for user display
 func (channel DiscordChannel) Name() string {
 	switch channel {
