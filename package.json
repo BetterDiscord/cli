@@ -3,7 +3,13 @@
   "version": "0.0.0",
   "description": "A cross-platform CLI for managing BetterDiscord",
   "main": "index.js",
-  "keywords": ["discord", "betterdiscord", "cli", "tool", "installer"],
+  "keywords": [
+    "discord",
+    "betterdiscord",
+    "cli",
+    "tool",
+    "installer"
+  ],
   "publishConfig": {
     "access": "public",
     "provenance": true

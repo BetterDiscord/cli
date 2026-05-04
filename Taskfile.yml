@@ -45,7 +45,7 @@ tasks:
   build:all:
     desc: Build binaries for all platforms using GoReleaser
     cmds:
-      - goreleaser build --snapshot --clean --skip=publish
+      - goreleaser build --snapshot --clean
     sources:
       - '**/*.go'
       - go.mod
